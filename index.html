@@ -1149,7 +1149,9 @@ function render() {
   DATA.nextInitiatives.forEach(function(t) { html += "<li>" + t + "</li>"; });
   html += "</ul></div>";
 
+  var scrollY = window.scrollY;
   app.innerHTML = html;
+  window.scrollTo(0, scrollY);
 
   // Build charts
   buildLineChart("chart-weekly-alert", {
