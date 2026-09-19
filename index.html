@@ -580,19 +580,18 @@ var DATA = {
   ],
 
   takeaways: [
-    "Overall adj. alert rate at 0.61% (w/e Sep 13), within the 0.70% EOY target. T2-T4 SME remains above the 0.80% target at 1.04%, consistently in the 0.78–1.11% range YTD.",
-    "Fraud rate reduced ~60% from Q1 (avg 0.014%) to Jun–Jul (avg 0.005%). T2-T4 SME fraud rate down ~66%, from avg 0.034% in Q1 to avg 0.012% since June.",
-    "Risk concentration firmly in T2-T4 SME: 6x the alert rate of Enterprise (1.25% vs 0.20% over Jul–Sep), and >90% of reported fraud $ in most weeks.",
-    "Enterprise/T1 stable at 0.17–0.24% alert rate with near-zero fraud rate (<0.01% most weeks). Rules 111/112 demised — Enterprise/T1 1m+ band alert rate brought down from 7% to 2%.",
-    "Top alert drivers (Jul–Sep): payer name mismatch (13% of alerts), beneficiary name mismatch (10%), and payout higher than expected (7%). Name-match rules alone generate 23% of all alerts with a 20.8% rejection rate."
+    "<strong>Alert rate 0.61%</strong>, within 0.70% EOY target. T2-T4 SME at 1.04%, above 0.80% target and primary area of focus.",
+    "<strong>Top 3 drivers:</strong> payer name mismatch (13%), beneficiary name mismatch (10%), payout higher than expected (7%). Name-match rules alone drive 23% of all alerts with 20.8% reject rate.",
+    "<strong>Fraud rate down ~60%</strong> from Q1 (0.014%) to Jun onward (0.005%). T2-T4 SME fraud down ~66%. Risk concentrated in SME: 6x the alert rate of Enterprise, >90% of fraud $.",
+    "<strong>Enterprise/T1 stable</strong> at 0.17–0.24% alert rate, near-zero fraud. Rules 111/112 retirement reduced 1m+ band alert rate from 7% to 2%."
   ],
 
   nextInitiatives: [
-    "Name-match rules (114/137520): 23% of all alerts (14,686), 20.8% rejection rate post Ops review. Enhancing name-match logic to reduce false alerts; working with GTPN to bring name-match check on transfer upfront to reduce risk rejections.",
-    "URL validation rule (25479): 3,085 alerts (5%), 100% RFI rate. Root cause: URL validation moved from KYC to first transfer to increase KYC STP rate. Biggest false-positive source is incorrect online business tagging on KYC side; working with DS team to improve.",
-    "Rule 49 (very high risk country): 2,881 alerts (5%), reject rate at 4.4%. Needs optimisation by segment. Exploring move to daily post-monitoring (only AML rule left in RT, limited value as real-time control).",
-    "AI discounting layer on RT to reduce overall friction and false positives.",
-    "DD recall queue in configuration, release targeted before 23 Sept."
+    "<strong>Name-match optimisation</strong> (23% of alerts, 20.8% reject rate) — enhancing matching logic; working with GTPN to move name-match check upfront on transfers to reduce false alerts and risk rejections.",
+    "<strong>URL validation</strong> (5% of alerts, 100% RFI rate) — root cause is incorrect online business tagging at KYC. Working with DS team to improve classification.",
+    "<strong>High risk country rule</strong> (5% of alerts, 4.4% reject rate) — exploring move from real-time to daily post-monitoring. Only AML rule still in RT, limited value as real-time control.",
+    "<strong>AI discounting layer</strong> — building RT model to reduce false positives across all rules.",
+    "<strong>DD recall queue</strong> — in configuration, release targeted before 23 Sept."
   ]
 };
 
@@ -929,6 +928,11 @@ function render() {
   html += '<div class="legend-item"><div class="legend-swatch dashed" style="border-color:var(--target-line)"></div>Target</div>';
   html += "</div></div></div>";
 
+  // Key Takeaways
+  html += '<div class="insight"><div class="insight-title">Key Takeaways</div><ul>';
+  DATA.takeaways.forEach(function(t) { html += "<li>" + t + "</li>"; });
+  html += "</ul></div>";
+
   // Weekly detail table
   html += '<div class="section"><div class="section-title">Weekly Alert Rate and Reject Amounts</div>';
   html += '<div class="table-wrapper"><table><thead><tr>';
@@ -940,30 +944,6 @@ function render() {
     html += "<tr><td>" + weekEnd(w.week) + "</td><td class=\"r\">" + fmtNum(w.txns) + "</td><td class=\"r\">" + fmtNum(w.alerts) + "</td><td class=\"r\">" + fmtPct(w.overall) + "</td><td class=\"r " + (dO.cls ? "delta-" + dO.cls : "") + "\">" + dO.text + "</td><td class=\"r\">" + fmtPct(w.enterprise) + "</td><td class=\"r\">" + fmtPct(w.sme) + "</td></tr>";
   }
   html += "</tbody></table></div></div>";
-
-  // Fraud rate trend chart (YTD, transaction-date fraud)
-  html += '<div class="charts-grid"><div class="chart-card">';
-  html += '<div class="chart-title">Weekly Fraud Rate Trend (Jan–Sep 2026, UAR-Confirmed / Deposits)</div>';
-  html += '<div id="chart-fraud-rate"></div>';
-  html += '<div class="legend">';
-  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-1)"></div>Overall</div>';
-  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-2)"></div>T2-T4 SME</div>';
-  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-3)"></div>Enterprise/T1</div>';
-  html += '<div class="legend-item"><div class="legend-swatch dashed" style="border-color:var(--target-line)"></div>Target</div>';
-  html += '</div><p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem">Transaction-date fraud (UAR-confirmed). Weeks after Aug 10 may understate fraud due to UAR review lag. Fraud detail table below uses report-date OKR definition.</p></div></div>';
-
-  // Fraud table (OKR: reported fraud $ / settled deposits $)
-  html += '<div class="section"><div class="section-title">Weekly Fraud Rate (Reported Fraud / Deposits, by Segment)</div>';
-  html += '<div class="table-wrapper"><table><thead><tr>';
-  html += "<th>Week</th><th class=\"r\">Deposits</th><th class=\"r\">Fraud $</th><th class=\"r\">Fraud Rate</th><th class=\"r\">WoW Δ</th><th class=\"r\">Enterprise/T1</th><th class=\"r\">T2-T4 SME</th>";
-  html += "</tr></thead><tbody>";
-  for (var m = wf.length - 1; m >= 0; m--) {
-    var f = wf[m], fp = m > 0 ? wf[m - 1] : null;
-    var isPrelim = m === wf.length - 1;
-    var dFr = pctDelta(f.fraudRate, fp ? fp.fraudRate : null);
-    html += '<tr style="' + (isPrelim ? "opacity:0.5" : "") + '"><td>' + weekEnd(f.week) + (isPrelim ? " *" : "") + "</td><td class=\"r\">$" + (f.depositUsd / 1e9).toFixed(2) + "B</td><td class=\"r\">$" + (f.fraudAmt / 1e3).toFixed(0) + "K</td><td class=\"r\">" + fmtPct(f.fraudRate) + "</td><td class=\"r " + (dFr.cls ? "delta-" + dFr.cls : "") + "\">" + dFr.text + "</td><td class=\"r\">" + fmtPct(f.entFraudRate) + "</td><td class=\"r\">" + fmtPct(f.smeFraudRate) + "</td></tr>";
-  }
-  html += '</tbody></table><p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">* Latest week is preliminary (pending Ops review). Fraud rate = reported fraud $ (UAR-confirmed) / settled deposit $, by report date. EOY targets: overall &lt;' + DATA.targets.fraudOverall.toFixed(2) + '%, T2-T4 SME &lt;' + DATA.targets.fraudSme.toFixed(2) + '%.</p></div></div>';
 
   // Top alert rate drivers by rule
   var ruleWeeks = DATA.topRulesByWeek.filter(function(r) {
@@ -995,6 +975,30 @@ function render() {
     html += '<tr><td>' + r.ruleId + '</td><td>' + r.ruleName + '</td><td class="r">' + fmtNum(r.alerts) + '</td><td class="r">' + fmtNum(r.clients) + '</td><td class="r">' + alertRate + '%</td><td class="r">' + fmtNum(r.rfis) + '</td><td class="r">' + rfiRate + '%</td><td class="r">' + rejectRate + '</td></tr>';
   });
   html += '</tbody></table></div></div>';
+
+  // Fraud rate trend chart (YTD, transaction-date fraud)
+  html += '<div class="charts-grid"><div class="chart-card">';
+  html += '<div class="chart-title">Weekly Fraud Rate Trend (Jan–Sep 2026, UAR-Confirmed / Deposits)</div>';
+  html += '<div id="chart-fraud-rate"></div>';
+  html += '<div class="legend">';
+  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-1)"></div>Overall</div>';
+  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-2)"></div>T2-T4 SME</div>';
+  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-3)"></div>Enterprise/T1</div>';
+  html += '<div class="legend-item"><div class="legend-swatch dashed" style="border-color:var(--target-line)"></div>Target</div>';
+  html += '</div><p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem">Transaction-date fraud (UAR-confirmed). Weeks after Aug 10 may understate fraud due to UAR review lag. Fraud detail table below uses report-date OKR definition.</p></div></div>';
+
+  // Fraud table (OKR: reported fraud $ / settled deposits $)
+  html += '<div class="section"><div class="section-title">Weekly Fraud Rate (Reported Fraud / Deposits, by Segment)</div>';
+  html += '<div class="table-wrapper"><table><thead><tr>';
+  html += "<th>Week</th><th class=\"r\">Deposits</th><th class=\"r\">Fraud $</th><th class=\"r\">Fraud Rate</th><th class=\"r\">WoW Δ</th><th class=\"r\">Enterprise/T1</th><th class=\"r\">T2-T4 SME</th>";
+  html += "</tr></thead><tbody>";
+  for (var m = wf.length - 1; m >= 0; m--) {
+    var f = wf[m], fp = m > 0 ? wf[m - 1] : null;
+    var isPrelim = m === wf.length - 1;
+    var dFr = pctDelta(f.fraudRate, fp ? fp.fraudRate : null);
+    html += '<tr style="' + (isPrelim ? "opacity:0.5" : "") + '"><td>' + weekEnd(f.week) + (isPrelim ? " *" : "") + "</td><td class=\"r\">$" + (f.depositUsd / 1e9).toFixed(2) + "B</td><td class=\"r\">$" + (f.fraudAmt / 1e3).toFixed(0) + "K</td><td class=\"r\">" + fmtPct(f.fraudRate) + "</td><td class=\"r " + (dFr.cls ? "delta-" + dFr.cls : "") + "\">" + dFr.text + "</td><td class=\"r\">" + fmtPct(f.entFraudRate) + "</td><td class=\"r\">" + fmtPct(f.smeFraudRate) + "</td></tr>";
+  }
+  html += '</tbody></table><p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">* Latest week is preliminary (pending Ops review). Fraud rate = reported fraud $ (UAR-confirmed) / settled deposit $, by report date. EOY targets: overall &lt;' + DATA.targets.fraudOverall.toFixed(2) + '%, T2-T4 SME &lt;' + DATA.targets.fraudSme.toFixed(2) + '%.</p></div></div>';
 
   // Segment breakdown: stacked bar charts + detail table
   html += '<div class="section"><div class="section-title">Segment Detail: Enterprise/T1 vs T2-T4 SME (Ops RFI + Customer Verification)</div>';
@@ -1064,16 +1068,10 @@ function render() {
   html += '<p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">Alert % = alerts/txns. RFI % = RFIs/txns. Alert→RFI = RFIs/alerts. Alert→Action = (RFI or Reject)/alerts. Red highlight = elevated rates requiring attention.</p>';
   html += "</div></div>";
 
-  // Takeaways
-  html += '<div class="insight"><div class="insight-title">Key Takeaways</div><ul>';
-  DATA.takeaways.forEach(function(t) { html += "<li>" + t + "</li>"; });
-  html += "</ul></div>";
-
-  // Next initiatives
+  // Next Initiatives
   html += '<div class="insight"><div class="insight-title">Next Initiatives</div><ul>';
   DATA.nextInitiatives.forEach(function(t) { html += "<li>" + t + "</li>"; });
   html += "</ul></div>";
-
 
   app.innerHTML = html;
 
