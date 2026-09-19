@@ -122,7 +122,7 @@ base AS (
     t.uar_case_reviewed_as_fraudulent
   FROM `risk-prod-sg`.dws_risk.risk_tm_real_time_transaction_results t
   LEFT JOIN sf_seg s ON s.cle_id = t.client_legal_entity_id
-  WHERE t.transaction_created_time >= date_add(date_trunc('week', current_date()), -84)
+  WHERE t.transaction_created_time >= '2026-01-01'
     AND t.transaction_created_time < current_date()
     AND t.transaction_type IN ('DEPOSIT','PAYMENT','DIRECT_DEBIT')
     AND t.account_id NOT IN (SELECT account_id FROM test_accounts)
@@ -179,7 +179,7 @@ cv_txns AS (
   SELECT DISTINCT r.data:transactionId::string AS txn_id
   FROM `risk-prod-sg`.silver.compliance__cs_tm_rule_result r
   LATERAL VIEW explode(cast(r.data:results AS array<struct<errMessage:string,ruleId:string,ruleName:string>>)) x AS res
-  WHERE r.create_time >= date_add(date_trunc('week', current_date()), -84)
+  WHERE r.create_time >= '2026-01-01'
     AND r.create_time < current_date()
     AND get_json_object(res.errMessage,'$.hit')='true'
     AND get_json_object(res.errMessage,'$.ruleId') IN (SELECT rule_id FROM verification_rules)
@@ -192,7 +192,7 @@ SELECT date_trunc('week', t.transaction_created_time) AS week_start,
 FROM cv_txns cv
 JOIN `risk-prod-sg`.dws_risk.risk_tm_real_time_transaction_results t
   ON t.transaction_id = cv.txn_id
-  AND t.transaction_created_time >= date_add(date_trunc('week', current_date()), -84)
+  AND t.transaction_created_time >= '2026-01-01'
   AND t.transaction_created_time < current_date()
   AND t.transaction_type IN ('DEPOSIT','PAYMENT','DIRECT_DEBIT')
 LEFT JOIN sf_seg s ON s.cle_id = t.client_legal_entity_id
@@ -222,7 +222,7 @@ rt_rules AS (
     1 AS alerts, CASE WHEN t.if_rfi THEN 1 ELSE 0 END AS rfis,
     CASE WHEN t.if_reject THEN 1 ELSE 0 END AS rejects, 0 AS is_cv
   FROM `risk-prod-sg`.dws_risk.risk_tm_real_time_transaction_results t
-  WHERE t.transaction_created_time >= date_add(date_trunc('week', current_date()), -84)
+  WHERE t.transaction_created_time >= '2026-01-01'
     AND t.transaction_created_time < current_date()
     AND t.if_alert=true AND t.transaction_type IN ('DEPOSIT','PAYMENT','DIRECT_DEBIT')
     AND t.account_id NOT IN (SELECT account_id FROM test_accounts)
@@ -233,7 +233,7 @@ cv_exploded AS (
     get_json_object(res.errMessage,'$.ruleId') AS rule_id, res.ruleName AS rule_name
   FROM `risk-prod-sg`.silver.compliance__cs_tm_rule_result r
   LATERAL VIEW explode(cast(r.data:results AS array<struct<errMessage:string,ruleId:string,ruleName:string>>)) x AS res
-  WHERE r.create_time >= date_add(date_trunc('week', current_date()), -84)
+  WHERE r.create_time >= '2026-01-01'
     AND r.create_time < current_date()
     AND get_json_object(res.errMessage,'$.hit')='true'
     AND get_json_object(res.errMessage,'$.ruleId') IN (SELECT rule_id FROM verification_rules)
@@ -244,7 +244,7 @@ cv_with_cle AS (
   FROM cv_exploded c
   LEFT JOIN `risk-prod-sg`.dws_risk.risk_tm_real_time_transaction_results t
     ON t.transaction_id=c.txn_id
-    AND t.transaction_created_time >= date_add(date_trunc('week', current_date()), -91)
+    AND t.transaction_created_time >= '2026-01-01'
     AND t.transaction_created_time < current_date()
 ),
 combined AS (
