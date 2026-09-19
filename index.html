@@ -999,11 +999,6 @@ function render() {
   html += '<div class="legend-item"><div class="legend-swatch dashed" style="border-color:var(--target-line)"></div>Target</div>';
   html += "</div></div></div>";
 
-  // Key Takeaways
-  html += '<div class="insight"><div class="insight-title">Key Takeaways</div><ul>';
-  DATA.takeaways.forEach(function(t) { html += "<li>" + t + "</li>"; });
-  html += "</ul></div>";
-
   // Weekly detail table
   html += '<div class="section"><div class="section-title">Weekly Alert Rate and Reject Amounts</div>';
   html += '<div class="table-wrapper"><table><thead><tr>';
@@ -1043,7 +1038,8 @@ function render() {
     var alertRate = totalTxns > 0 ? (r.alerts / totalTxns * 100).toFixed(3) : "0";
     var rfiRate = r.alerts > 0 ? (r.rfis / r.alerts * 100).toFixed(1) : "0";
     var rejectRate = r.cv ? "N/A" : (r.alerts > 0 ? (r.rejects / r.alerts * 100).toFixed(1) + '%' : "0%");
-    html += '<tr><td>' + r.ruleId + '</td><td>' + r.ruleName + '</td><td class="r">' + fmtNum(r.alerts) + '</td><td class="r">' + fmtNum(r.clients) + '</td><td class="r">' + alertRate + '%</td><td class="r">' + fmtNum(r.rfis) + '</td><td class="r">' + rfiRate + '%</td><td class="r">' + rejectRate + '</td></tr>';
+    var displayName = r.ruleName.length > 55 ? r.ruleName.substring(0, 52) + '...' : r.ruleName;
+    html += '<tr><td>' + r.ruleId + '</td><td title="' + r.ruleName.replace(/"/g, '&quot;') + '">' + displayName + '</td><td class="r">' + fmtNum(r.alerts) + '</td><td class="r">' + fmtNum(r.clients) + '</td><td class="r">' + alertRate + '%</td><td class="r">' + fmtNum(r.rfis) + '</td><td class="r">' + rfiRate + '%</td><td class="r">' + rejectRate + '</td></tr>';
   });
   html += '</tbody></table></div></div>';
 
@@ -1138,6 +1134,11 @@ function render() {
   html += "</tbody></table>";
   html += '<p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">Alert % = alerts/txns. RFI % = RFIs/txns. Alert→RFI = RFIs/alerts. Alert→Action = (RFI or Reject)/alerts. Red highlight = elevated rates requiring attention.</p>';
   html += "</div></div>";
+
+  // Key Takeaways
+  html += '<div class="insight"><div class="insight-title">Key Takeaways</div><ul>';
+  DATA.takeaways.forEach(function(t) { html += "<li>" + t + "</li>"; });
+  html += "</ul></div>";
 
   // Next Initiatives
   html += '<div class="insight"><div class="insight-title">Next Initiatives</div><ul>';
