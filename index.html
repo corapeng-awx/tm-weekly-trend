@@ -941,6 +941,17 @@ function render() {
   }
   html += "</tbody></table></div></div>";
 
+  // Fraud rate trend chart (YTD, transaction-date fraud)
+  html += '<div class="charts-grid"><div class="chart-card">';
+  html += '<div class="chart-title">Weekly Fraud Rate Trend (Jan–Sep 2026, UAR-Confirmed / Deposits)</div>';
+  html += '<div id="chart-fraud-rate"></div>';
+  html += '<div class="legend">';
+  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-1)"></div>Overall</div>';
+  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-2)"></div>T2-T4 SME</div>';
+  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-3)"></div>Enterprise/T1</div>';
+  html += '<div class="legend-item"><div class="legend-swatch dashed" style="border-color:var(--target-line)"></div>Target</div>';
+  html += '</div><p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem">Transaction-date fraud (UAR-confirmed). Weeks after Aug 10 may understate fraud due to UAR review lag. Fraud detail table below uses report-date OKR definition.</p></div></div>';
+
   // Fraud table (OKR: reported fraud $ / settled deposits $)
   html += '<div class="section"><div class="section-title">Weekly Fraud Rate (Reported Fraud / Deposits, by Segment)</div>';
   html += '<div class="table-wrapper"><table><thead><tr>';
@@ -953,17 +964,6 @@ function render() {
     html += '<tr style="' + (isPrelim ? "opacity:0.5" : "") + '"><td>' + weekEnd(f.week) + (isPrelim ? " *" : "") + "</td><td class=\"r\">$" + (f.depositUsd / 1e9).toFixed(2) + "B</td><td class=\"r\">$" + (f.fraudAmt / 1e3).toFixed(0) + "K</td><td class=\"r\">" + fmtPct(f.fraudRate) + "</td><td class=\"r " + (dFr.cls ? "delta-" + dFr.cls : "") + "\">" + dFr.text + "</td><td class=\"r\">" + fmtPct(f.entFraudRate) + "</td><td class=\"r\">" + fmtPct(f.smeFraudRate) + "</td></tr>";
   }
   html += '</tbody></table><p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">* Latest week is preliminary (pending Ops review). Fraud rate = reported fraud $ (UAR-confirmed) / settled deposit $, by report date. EOY targets: overall &lt;' + DATA.targets.fraudOverall.toFixed(2) + '%, T2-T4 SME &lt;' + DATA.targets.fraudSme.toFixed(2) + '%.</p></div></div>';
-
-  // Fraud rate trend chart (YTD, transaction-date fraud)
-  html += '<div class="charts-grid"><div class="chart-card">';
-  html += '<div class="chart-title">Weekly Fraud Rate Trend (Jan–Sep 2026, UAR-Confirmed / Deposits)</div>';
-  html += '<div id="chart-fraud-rate"></div>';
-  html += '<div class="legend">';
-  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-1)"></div>Overall</div>';
-  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-2)"></div>T2-T4 SME</div>';
-  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-3)"></div>Enterprise/T1</div>';
-  html += '<div class="legend-item"><div class="legend-swatch dashed" style="border-color:var(--target-line)"></div>Target</div>';
-  html += '</div><p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem">Transaction-date fraud (UAR-confirmed). Weeks after Aug 10 may understate fraud due to UAR review lag. Fraud detail table above uses report-date OKR definition.</p></div></div>';
 
   // Top alert rate drivers by rule
   var ruleWeeks = DATA.topRulesByWeek.filter(function(r) {
