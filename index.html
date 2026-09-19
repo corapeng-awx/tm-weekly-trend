@@ -1046,7 +1046,7 @@ function render() {
 
   // Fraud rate trend chart (YTD, transaction-date fraud)
   html += '<div class="charts-grid"><div class="chart-card">';
-  html += '<div class="chart-title">Weekly Fraud Rate Trend (Jan–Sep 2026, UAR-Confirmed / Deposits)</div>';
+  html += '<div class="chart-title">Weekly Fraud Rate Trend (UAR-Confirmed / Deposits)</div>';
   html += '<div id="chart-fraud-rate"></div>';
   html += '<div class="legend">';
   html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-1)"></div>Overall</div>';
@@ -1159,7 +1159,7 @@ function render() {
   });
 
   // Fraud rate chart (YTD from fraudTrendFull)
-  var ftf = DATA.fraudTrendFull;
+  var ftf = sliceData(DATA.fraudTrendFull, filterWeeks);
   var fraudRateMax = 0;
   ftf.forEach(function(f) { fraudRateMax = Math.max(fraudRateMax, f.fraudRate, f.smeFraudRate || 0); });
   fraudRateMax = Math.max(fraudRateMax, DATA.targets.fraudSme) * 1.3;
