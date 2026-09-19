@@ -704,7 +704,7 @@ function pctDelta(curr, prev) {
   var sign = d > 0.0001 ? "+" : d < -0.0001 ? "−" : "";
   var abs = Math.abs(d) < 0.01 ? Math.abs(d).toFixed(4) : Math.abs(d) < 0.1 ? Math.abs(d).toFixed(3) : Math.abs(d).toFixed(2);
   var cls = d > 0.0005 ? "bad" : d < -0.0005 ? "good" : "";
-  return { text: sign + abs + "% WoW", cls: cls };
+  return { text: sign + abs + "%", cls: cls, wow: sign + abs + "% WoW" };
 }
 
 function countDelta(curr, prev) {
@@ -904,8 +904,8 @@ function render() {
   var w1 = latest;
   var w2 = wa.length >= 2 ? wa[wa.length - 2] : null;
   var w1Week = w1.week;
-  var fraudLag = wf.length >= 2 ? wf[wf.length - 2] : latestFraud;
-  var fraudLagPrev = wf.length >= 3 ? wf[wf.length - 3] : null;
+  var fraudLag = latestFraud;
+  var fraudLagPrev = wf.length >= 2 ? wf[wf.length - 2] : null;
   var fraudLagWeek = fraudLag.week;
 
   var dOverall = pctDelta(w1.overall, w2 ? w2.overall : null);
@@ -937,9 +937,9 @@ function render() {
   // Alert Rate
   html += '<p style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:0.5rem">Adjusted Alert Rate</p>';
   html += '<div class="kpi-row" style="grid-template-columns: repeat(3, 1fr)">';
-  html += '<div class="kpi"><div class="kpi-label">Overall</div><div class="kpi-value">' + fmtPct(w1.overall) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dOverall.cls + '">' + dOverall.text + '</span><span class="kpi-target">Target &lt;' + DATA.targets.overall.toFixed(2) + "%</span></div></div>";
-  html += '<div class="kpi"><div class="kpi-label">Enterprise/T1</div><div class="kpi-value">' + fmtPct(w1.enterprise) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dEnt.cls + '">' + dEnt.text + "</span></div></div>";
-  html += '<div class="kpi"><div class="kpi-label">T2-T4 SME</div><div class="kpi-value">' + fmtPct(w1.sme) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dSme.cls + '">' + dSme.text + '</span><span class="kpi-target">Target &lt;' + DATA.targets.sme.toFixed(2) + "%</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">Overall</div><div class="kpi-value">' + fmtPct(w1.overall) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dOverall.cls + '">' + dOverall.wow + '</span><span class="kpi-target">Target &lt;' + DATA.targets.overall.toFixed(2) + "%</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">Enterprise/T1</div><div class="kpi-value">' + fmtPct(w1.enterprise) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dEnt.cls + '">' + dEnt.wow + "</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">T2-T4 SME</div><div class="kpi-value">' + fmtPct(w1.sme) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dSme.cls + '">' + dSme.wow + '</span><span class="kpi-target">Target &lt;' + DATA.targets.sme.toFixed(2) + "%</span></div></div>";
   html += "</div>";
 
   // RFI Rate
@@ -960,9 +960,9 @@ function render() {
 
   html += '<p style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:0.5rem;margin-top:0.25rem">RFI Rate</p>';
   html += '<div class="kpi-row" style="grid-template-columns: repeat(3, 1fr)">';
-  html += '<div class="kpi"><div class="kpi-label">Overall</div><div class="kpi-value">' + fmtPct(overallRfiRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dOverallRfi.cls + '">' + dOverallRfi.text + "</span></div></div>";
-  html += '<div class="kpi"><div class="kpi-label">Enterprise/T1</div><div class="kpi-value">' + fmtPct(entRfiRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dEntRfi.cls + '">' + dEntRfi.text + "</span></div></div>";
-  html += '<div class="kpi"><div class="kpi-label">T2-T4 SME</div><div class="kpi-value">' + fmtPct(smeRfiRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dSmeRfi.cls + '">' + dSmeRfi.text + "</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">Overall</div><div class="kpi-value">' + fmtPct(overallRfiRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dOverallRfi.cls + '">' + dOverallRfi.wow + "</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">Enterprise/T1</div><div class="kpi-value">' + fmtPct(entRfiRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dEntRfi.cls + '">' + dEntRfi.wow + "</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">T2-T4 SME</div><div class="kpi-value">' + fmtPct(smeRfiRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dSmeRfi.cls + '">' + dSmeRfi.wow + "</span></div></div>";
   html += "</div>";
 
   // Fraud Rate
@@ -976,11 +976,11 @@ function render() {
   var smeFraudPrev = fraudLagPrev ? fraudLagPrev.smeFraudRate : null;
   var smeFrDelta = pctDelta(smeFraudLag, smeFraudPrev);
 
-  html += '<p style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:0.5rem;margin-top:0.25rem">Fraud Rate <span style="font-weight:400;text-transform:none">(w/e ' + weekEnd(fraudLagWeek) + ', lagged 1 week for maturity)</span></p>';
+  html += '<p style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:0.5rem;margin-top:0.25rem">Fraud Rate <span style="font-weight:400;text-transform:none">(w/e ' + weekEnd(fraudLagWeek) + ', latest completed week)</span></p>';
   html += '<div class="kpi-row" style="grid-template-columns: repeat(3, 1fr)">';
-  html += '<div class="kpi"><div class="kpi-label">Overall</div><div class="kpi-value">' + fmtPct(fraudLagRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + frDelta.cls + '">' + frDelta.text + '</span><span class="kpi-target">EOY &lt;' + DATA.targets.fraudOverall.toFixed(2) + "%</span></div></div>";
-  html += '<div class="kpi"><div class="kpi-label">Enterprise/T1</div><div class="kpi-value">' + fmtPct(entFraudLag) + '</div><div class="kpi-meta"><span class="kpi-delta ' + entFrDelta.cls + '">' + entFrDelta.text + "</span></div></div>";
-  html += '<div class="kpi"><div class="kpi-label">T2-T4 SME</div><div class="kpi-value">' + fmtPct(smeFraudLag) + '</div><div class="kpi-meta"><span class="kpi-delta ' + smeFrDelta.cls + '">' + smeFrDelta.text + '</span><span class="kpi-target">EOY &lt;' + DATA.targets.fraudSme.toFixed(2) + "%</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">Overall</div><div class="kpi-value">' + fmtPct(fraudLagRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + frDelta.cls + '">' + frDelta.wow + '</span><span class="kpi-target">EOY &lt;' + DATA.targets.fraudOverall.toFixed(2) + "%</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">Enterprise/T1</div><div class="kpi-value">' + fmtPct(entFraudLag) + '</div><div class="kpi-meta"><span class="kpi-delta ' + entFrDelta.cls + '">' + entFrDelta.wow + "</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">T2-T4 SME</div><div class="kpi-value">' + fmtPct(smeFraudLag) + '</div><div class="kpi-meta"><span class="kpi-delta ' + smeFrDelta.cls + '">' + smeFrDelta.wow + '</span><span class="kpi-target">EOY &lt;' + DATA.targets.fraudSme.toFixed(2) + "%</span></div></div>";
   html += "</div>";
 
   // Chart: weekly alert rate
