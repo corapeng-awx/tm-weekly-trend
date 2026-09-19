@@ -80,7 +80,7 @@ def run_query(sql, label="query"):
 
 def fmt_week(ds):
     """'2026-07-13 00:00:00' or '2026-07-13' → 'Jul 13'"""
-    d = ds.split(" ")[0] if " " in ds else ds
+    d = ds.split("T")[0].split(" ")[0]
     dt = datetime.strptime(d, "%Y-%m-%d")
     return dt.strftime("%b %-d")
 

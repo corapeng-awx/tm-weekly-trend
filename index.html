@@ -851,10 +851,14 @@ function render() {
 
   html += '<div class="filter-row">';
   html += '<span class="filter-label">Window</span>';
-  html += '<button class="filter-btn' + (filterWeeks === 4 ? " active" : "") + '" data-weeks="4" onclick="setFilter(4)">4W</button>';
-  html += '<button class="filter-btn' + (filterWeeks === 6 ? " active" : "") + '" data-weeks="6" onclick="setFilter(6)">6W</button>';
-  html += '<button class="filter-btn' + (filterWeeks === 8 ? " active" : "") + '" data-weeks="8" onclick="setFilter(8)">8W</button>';
-  html += '<button class="filter-btn' + (filterWeeks === 0 ? " active" : "") + '" data-weeks="0" onclick="setFilter(0)">All</button>';
+  var filters = [
+    {w:4,label:'4W'},{w:6,label:'6W'},{w:8,label:'8W'},
+    {w:13,label:'3M'},{w:17,label:'4M'},{w:22,label:'5M'},{w:26,label:'6M'},
+    {w:30,label:'7M'},{w:35,label:'8M'},{w:39,label:'9M'},{w:0,label:'All'}
+  ];
+  filters.forEach(function(f) {
+    html += '<button class="filter-btn' + (filterWeeks === f.w ? " active" : "") + '" data-weeks="' + f.w + '" onclick="setFilter(' + f.w + ')">' + f.label + '</button>';
+  });
   html += '<div class="filter-sep"></div>';
   html += '<span class="filter-range">' + rangeText + "</span>";
   html += "</div>";
