@@ -363,7 +363,7 @@ base AS (
     t.if_alert, t.if_rfi, t.if_reject
   FROM `risk-prod-sg`.dws_risk.risk_tm_real_time_transaction_results t
   LEFT JOIN sf_seg s ON s.cle_id = t.client_legal_entity_id
-  WHERE t.transaction_created_time >= date_trunc('month', date_add(current_date(), -90))
+  WHERE t.transaction_created_time >= date_trunc('quarter', current_date())
     AND t.transaction_created_time < current_date()
     AND t.transaction_type IN ('DEPOSIT','PAYMENT','DIRECT_DEBIT')
     AND t.account_id NOT IN (SELECT account_id FROM test_accounts)
