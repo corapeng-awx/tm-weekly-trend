@@ -26,9 +26,16 @@ def run_query(sql, label="query"):
         "disposition": "INLINE",
         "format": "JSON_ARRAY",
     }
-    print(f"[{label}] Submitting query...")
+    print(f"[{label}] Submitting query to {HOST}...")
     resp = requests.post(url, json=payload, headers=headers, timeout=60)
+    if resp.status_code != 200:
+        print(f"[{label}] HTTP {resp.status_code}: {resp.text[:500]}")
+        return []
     data = resp.json()
+
+    if "statement_id" not in data:
+        print(f"[{label}] Unexpected response: {json.dumps(data)[:500]}")
+        return []
 
     for attempt in range(60):
         state = data.get("status", {}).get("state", "UNKNOWN")
