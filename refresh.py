@@ -666,16 +666,17 @@ def extract_preserved(html):
                     return block[start:i + 1]
         return None
 
+    weekly_fraud_raw = extract_section("weeklyFraud")
     fraud_recall_raw = extract_section("fraudRecall")
     targets_raw = extract_section("targets")
     takeaways_raw = extract_section("takeaways")
     initiatives_raw = extract_section("nextInitiatives")
 
-    return fraud_recall_raw, targets_raw, takeaways_raw, initiatives_raw
+    return weekly_fraud_raw, fraud_recall_raw, targets_raw, takeaways_raw, initiatives_raw
 
 
 def build_data_block(monthly, weekly_alert, weekly_segment, weekly_rfi,
-                     weekly_fraud, fraud_ytd, top_rules, amount_band,
+                     weekly_fraud_raw, fraud_ytd, top_rules, amount_band,
                      fraud_recall_raw, targets_raw, takeaways_raw, initiatives_raw):
     """Assemble the complete var DATA = { ... }; block."""
     today = date.today().isoformat()
@@ -688,7 +689,7 @@ def build_data_block(monthly, weekly_alert, weekly_segment, weekly_rfi,
     lines.append(f'  weeklyAlert: {js_array(weekly_alert)},\n')
     lines.append(f'  weeklySegment: {js_array(weekly_segment)},\n')
     lines.append(f'  weeklyRfi: {js_array(weekly_rfi)},\n')
-    lines.append(f'  weeklyFraud: {js_array(weekly_fraud)},\n')
+    lines.append(f'  weeklyFraud: {weekly_fraud_raw},\n')
     lines.append(f'  fraudTrendFull: {js_array(fraud_ytd)},\n')
 
     lines.append(f'  fraudRecall: {fraud_recall_raw},\n')
@@ -725,7 +726,7 @@ def main():
     with open(HTML_PATH, "r") as f:
         html = f.read()
 
-    fraud_recall_raw, targets_raw, takeaways_raw, initiatives_raw = extract_preserved(html)
+    weekly_fraud_raw, fraud_recall_raw, targets_raw, takeaways_raw, initiatives_raw = extract_preserved(html)
     if not targets_raw:
         print("ERROR: Could not parse existing DATA block. Aborting.")
         sys.exit(1)
@@ -752,10 +753,10 @@ def main():
     print(f"\nData assembled: {len(weekly_alert)} weeks, {len(monthly_trend)} months, "
           f"{len(top_rules)} rule-week rows, {len(fraud_ytd)} fraud-ytd weeks")
 
-    # Build new DATA block
+    # Build new DATA block (weeklyFraud preserved from HTML — uses OKR definition)
     new_data = build_data_block(
         monthly_trend, weekly_alert, weekly_segment, weekly_rfi,
-        weekly_fraud, fraud_ytd, top_rules, amount_band,
+        weekly_fraud_raw, fraud_ytd, top_rules, amount_band,
         fraud_recall_raw, targets_raw, takeaways_raw, initiatives_raw,
     )
 
