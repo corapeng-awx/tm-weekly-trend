@@ -11,7 +11,27 @@ from datetime import datetime, date
 
 HOST = os.environ.get("DATABRICKS_HOST", "https://4460961511039885.5.gcp.databricks.com")
 WAREHOUSE_ID = os.environ.get("DATABRICKS_WAREHOUSE_ID", "76e1e5ab77cf3fda")
-TOKEN = os.environ["DATABRICKS_TOKEN"]
+
+
+def _get_token():
+    """Use env var if set (CI), otherwise fall back to Databricks CLI OAuth."""
+    env_token = os.environ.get("DATABRICKS_TOKEN")
+    if env_token:
+        return env_token
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["databricks", "auth", "token", "--profile", "DEFAULT"],
+            capture_output=True, text=True, timeout=10
+        )
+        data = json.loads(result.stdout)
+        return data["access_token"]
+    except Exception as e:
+        print(f"Failed to get token from Databricks CLI: {e}")
+        sys.exit(1)
+
+
+TOKEN = _get_token()
 HTML_PATH = os.path.join(os.path.dirname(__file__), "index.html")
 
 
