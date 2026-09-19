@@ -1,0 +1,1144 @@
+<title>Real-time TM Weekly Performance Report</title>
+<style>
+  :root {
+    --surface: #fcfcfb;
+    --page-plane: #f9f9f7;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --gridline: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --insight-bg: #f4f4f1;
+    --delta-good: #006300;
+    --delta-bad: #d03b3b;
+    --target-line: #898781;
+    --filter-active: #2a78d6;
+    --filter-active-text: #ffffff;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --surface: #1a1a19;
+      --page-plane: #0d0d0d;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted: #898781;
+      --gridline: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --insight-bg: #252524;
+      --delta-good: #0ca30c;
+      --delta-bad: #e66767;
+      --target-line: #898781;
+      --filter-active: #3987e5;
+      --filter-active-text: #ffffff;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --surface: #1a1a19;
+    --page-plane: #0d0d0d;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --gridline: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --insight-bg: #252524;
+    --delta-good: #0ca30c;
+    --delta-bad: #e66767;
+    --target-line: #898781;
+    --filter-active: #3987e5;
+    --filter-active-text: #ffffff;
+    color-scheme: dark;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--surface);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1200px; margin: 0 auto; padding: 2.5rem 2rem; }
+
+  h1 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.25rem; }
+  .updated { color: var(--text-muted); font-size: 0.75rem; margin-bottom: 1.25rem; }
+
+  /* Date filter */
+  .filter-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+  .filter-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .filter-btn { padding: 0.3rem 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text-secondary); font-size: 0.75rem; cursor: pointer; font-family: inherit; transition: all 0.1s; }
+  .filter-btn:hover { border-color: var(--text-muted); }
+  .filter-btn.active { background: var(--filter-active); color: var(--filter-active-text); border-color: var(--filter-active); }
+  .filter-sep { width: 1px; height: 1.25rem; background: var(--border); margin: 0 0.25rem; }
+  .filter-range { font-size: 0.75rem; color: var(--text-secondary); margin-left: 0.5rem; }
+
+  /* KPI Row */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .kpi { padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+  .kpi-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+  .kpi-value { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
+  .kpi-meta { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.375rem; font-size: 0.75rem; }
+  .kpi-delta { font-weight: 600; }
+  .kpi-delta.good { color: var(--delta-good); }
+  .kpi-delta.bad { color: var(--delta-bad); }
+  .kpi-target { color: var(--text-muted); }
+
+  /* Section */
+  .section { margin-bottom: 2.5rem; }
+  .section-title { font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; }
+
+  /* Chart cards */
+  .charts-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 2.5rem; }
+  .chart-card { padding: 1.25rem 1.25rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+  .chart-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary); }
+  svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+  .legend { display: flex; gap: 1.25rem; margin-top: 0.75rem; justify-content: center; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 0.375rem; font-size: 0.75rem; color: var(--text-secondary); }
+  .legend-swatch { width: 12px; height: 3px; border-radius: 1px; flex-shrink: 0; }
+  .legend-swatch.dashed { border-top: 2px dashed; background: none; height: 0; }
+
+  /* Tables */
+  .table-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
+  thead { border-bottom: 1px solid var(--baseline); }
+  th { text-align: left; padding: 0.625rem 0.75rem; font-weight: 600; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); white-space: nowrap; }
+  th.r { text-align: right; }
+  td { padding: 0.5rem 0.75rem; border-top: 1px solid var(--gridline); white-space: nowrap; color: var(--text-secondary); }
+  td.r { text-align: right; }
+  td.delta-good { color: var(--delta-good); font-weight: 500; }
+  td.delta-bad { color: var(--delta-bad); font-weight: 500; }
+  tr.total-row td { font-weight: 600; border-top: 2px solid var(--baseline); color: var(--text-primary); }
+
+  /* Insight boxes */
+  .insight { background: var(--insight-bg); border-radius: 8px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+  .insight-title { font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.625rem; color: var(--text-primary); }
+  .insight ul { list-style: none; padding: 0; }
+  .insight li { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; padding: 0.25rem 0 0.25rem 1rem; position: relative; }
+  .insight li::before { content: ""; position: absolute; left: 0; top: 0.75rem; width: 4px; height: 4px; border-radius: 50%; background: var(--text-muted); }
+
+  /* Tooltip */
+  .tooltip { position: fixed; pointer-events: none; background: var(--text-primary); color: var(--surface); padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.75rem; line-height: 1.5; z-index: 100; opacity: 0; transition: opacity 0.12s; max-width: 240px; box-shadow: 0 4px 16px rgba(0,0,0,0.18); }
+  .tooltip.visible { opacity: 1; }
+  .tooltip-label { font-weight: 600; margin-bottom: 0.125rem; font-size: 0.6875rem; opacity: 0.75; }
+  .tooltip-value { font-size: 1rem; font-weight: 700; }
+  .tooltip-meta { font-size: 0.6875rem; opacity: 0.7; margin-top: 0.25rem; }
+
+  td.hot { background: rgba(220,53,69,0.12); font-weight: 600; }
+  td.warm { background: rgba(220,53,69,0.06); }
+  .band-table td:first-child { font-weight: 500; }
+  .band-table tr.seg-header td { font-weight: 600; color: var(--text-primary); background: var(--insight-bg); border-top: 2px solid var(--baseline); }
+
+  @media (max-width: 768px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .page { padding: 1.5rem 1rem; }
+  }
+  @media print { .tooltip { display: none !important; } .filter-row { display: none; } }
+</style>
+
+<div class="page" id="app"></div>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ============================================================
+// DATA block. Update each week: append rows, update takeaways.
+// ============================================================
+var DATA = {
+  lastUpdated: "2026-09-19",
+
+  monthlyTrend: [
+    { period: "Dec 1",  overall: 0.609, sme: 0.938, enterprise: 0.234, txns: 2693421 },
+    { period: "Dec 29", overall: 0.390, sme: 0.475, enterprise: 0.203, txns: 3721636 },
+    { period: "Jan 26", overall: 0.574, sme: 0.876, enterprise: 0.208, txns: 2268764 },
+    { period: "Feb 23", overall: 0.589, sme: 0.885, enterprise: 0.233, txns: 2801980 },
+    { period: "Mar 30", overall: 0.599, sme: 0.882, enterprise: 0.282, txns: 2824151 },
+    { period: "Apr 27", overall: 0.630, sme: 0.860, enterprise: 0.343, txns: 2962887 },
+    { period: "Jun 1",  overall: 0.716, sme: 0.923, enterprise: 0.444, txns: 3282570 },
+    { period: "Jun 29", overall: 0.666, sme: 0.874, enterprise: 0.417, txns: 3457455 },
+    { period: "Jul 27", overall: 0.577, sme: 0.784, enterprise: 0.307, txns: 3279485 },
+    { period: "Aug 31", overall: 0.648, sme: 0.914, enterprise: 0.323, txns: 2077607 }
+  ],
+
+  weeklyAlert: [
+    { week: "Jul 13",  overall: 0.586, enterprise: 0.219, sme: 0.977, txns: 863816, alerts: 5066, rejects: 1454, rejectAmt: 28871197 },
+    { week: "Jul 20",  overall: 0.699, enterprise: 0.209, sme: 0.999, txns: 712214, alerts: 4979, rejects: 1004, rejectAmt: 23096891 },
+    { week: "Jul 27",  overall: 0.623, enterprise: 0.229, sme: 0.947, txns: 778395, alerts: 4852, rejects: 1078, rejectAmt: 31318846 },
+    { week: "Aug 3",   overall: 0.541, enterprise: 0.173, sme: 0.832, txns: 760414, alerts: 4113, rejects: 1488, rejectAmt: 49024670 },
+    { week: "Aug 10",  overall: 0.605, enterprise: 0.212, sme: 0.928, txns: 758811, alerts: 4590, rejects: 1215, rejectAmt: 25603267 },
+    { week: "Aug 17",  overall: 0.554, enterprise: 0.179, sme: 0.873, txns: 753121, alerts: 4170, rejects: 1211, rejectAmt: 42791964 },
+    { week: "Aug 24",  overall: 0.631, enterprise: 0.214, sme: 0.978, txns: 772445, alerts: 4871, rejects: 1213, rejectAmt: 35254475 },
+    { week: "Aug 31",  overall: 0.591, enterprise: 0.205, sme: 0.948, txns: 793126, alerts: 4689, rejects: 1145, rejectAmt: 32215717 },
+    { week: "Sep 7",   overall: 0.611, enterprise: 0.211, sme: 1.039, txns: 773509, alerts: 4724, rejects: 834,  rejectAmt: 45192220 },
+    { week: "Sep 14",  overall: 0.690, enterprise: 0.244, sme: 1.106, txns: 710486, alerts: 4904, rejects: 814,  rejectAmt: 15083134 }
+  ],
+
+  weeklySegment: [
+    { week: "Jul 13",  entTxns: 412572, entAlerts: 1051, entRfis: 273, entRejects: 147, entRejectAmt: 4751734,  smeTxns: 330937, smeAlerts: 4292, smeRfis: 1986, smeRejects: 1060, smeRejectAmt: 23708093, entOpsRfis: null, entCvHits: null, smeOpsRfis: null, smeCvHits: null },
+    { week: "Jul 20",  entTxns: 375758, entAlerts: 833,  entRfis: 156, entRejects: 49,  entRejectAmt: 5794248,  smeTxns: 313042, smeAlerts: 3951, smeRfis: 1689, smeRejects: 825,  smeRejectAmt: 16906681, entOpsRfis: 153, entCvHits: 116, smeOpsRfis: 1623, smeCvHits: 527 },
+    { week: "Jul 27",  entTxns: 400205, entAlerts: 1007, entRfis: 202, entRejects: 90,  entRejectAmt: 6869009,  smeTxns: 352411, smeAlerts: 4189, smeRfis: 1879, smeRejects: 851,  smeRejectAmt: 24157344, entOpsRfis: 199, entCvHits: 310, smeOpsRfis: 1819, smeCvHits: 583 },
+    { week: "Aug 3",   entTxns: 396540, entAlerts: 1016, entRfis: 247, entRejects: 330, entRejectAmt: 6416416,  smeTxns: 343813, smeAlerts: 3906, smeRfis: 1713, smeRejects: 1047, smeRejectAmt: 42338006, entOpsRfis: 247, entCvHits: 31, smeOpsRfis: 1663, smeCvHits: 444 },
+    { week: "Aug 10",  entTxns: 402055, entAlerts: 919,  entRfis: 157, entRejects: 67,  entRejectAmt: 3041701,  smeTxns: 334185, smeAlerts: 4139, smeRfis: 1762, smeRejects: 1037, smeRejectAmt: 22348740, entOpsRfis: 152, entCvHits: 53, smeOpsRfis: 1694, smeCvHits: 465 },
+    { week: "Aug 17",  entTxns: 388436, entAlerts: 778,  entRfis: 171, entRejects: 81,  entRejectAmt: 14537190, smeTxns: 341738, smeAlerts: 3981, smeRfis: 1900, smeRejects: 997,  smeRejectAmt: 27830272, entOpsRfis: 167, entCvHits: 64, smeOpsRfis: 1844, smeCvHits: 398 },
+    { week: "Aug 24",  entTxns: 401366, entAlerts: 939,  entRfis: 215, entRejects: 79,  entRejectAmt: 7125449,  smeTxns: 347420, smeAlerts: 4408, smeRfis: 2018, smeRejects: 1010, smeRejectAmt: 27912404, entOpsRfis: 210, entCvHits: 55, smeOpsRfis: 1948, smeCvHits: 494 },
+    { week: "Aug 31",  entTxns: 416398, entAlerts: 920,  entRfis: 182, entRejects: 65,  entRejectAmt: 3011022,  smeTxns: 354098, smeAlerts: 4317, smeRfis: 1897, smeRejects: 960,  smeRejectAmt: 28827774, entOpsRfis: 177, entCvHits: 77, smeOpsRfis: 1769, smeCvHits: 431 },
+    { week: "Sep 7",   entTxns: 425858, entAlerts: 964,  entRfis: 297, entRejects: 67,  entRejectAmt: 7998895,  smeTxns: 324914, smeAlerts: 4100, smeRfis: 1867, smeRejects: 725,  smeRejectAmt: 37043062, entOpsRfis: 207, entCvHits: 49, smeOpsRfis: 1480, smeCvHits: 499 },
+    { week: "Sep 14",  entTxns: 375340, entAlerts: 969,  entRfis: 226, entRejects: 54,  entRejectAmt: 1611424,  smeTxns: 309829, smeAlerts: 4148, smeRfis: 1995, smeRejects: 720,  smeRejectAmt: 13398348, entOpsRfis: 36, entCvHits: 5, smeOpsRfis: 469, smeCvHits: 231 }
+  ],
+
+  weeklyRfi: [
+    { week: "Jul 13",  alerts: 6520, rfis: 2548, rfiRate: 39.1, opsRfis: null, cvHits: null },
+    { week: "Jul 20",  alerts: 5983, rfis: 2050, rfiRate: 34.3, opsRfis: 1776, cvHits: 643 },
+    { week: "Jul 27",  alerts: 5930, rfis: 2278, rfiRate: 38.4, opsRfis: 2018, cvHits: 893 },
+    { week: "Aug 3",   alerts: 5601, rfis: 2141, rfiRate: 38.2, opsRfis: 1910, cvHits: 475 },
+    { week: "Aug 10",  alerts: 5805, rfis: 2093, rfiRate: 36.1, opsRfis: 1846, cvHits: 518 },
+    { week: "Aug 17",  alerts: 5381, rfis: 2280, rfiRate: 42.4, opsRfis: 2011, cvHits: 462 },
+    { week: "Aug 24",  alerts: 6084, rfis: 2404, rfiRate: 39.5, opsRfis: 2158, cvHits: 549 },
+    { week: "Aug 31",  alerts: 5834, rfis: 2268, rfiRate: 38.9, opsRfis: 1946, cvHits: 508 },
+    { week: "Sep 7",   alerts: 5558, rfis: 2298, rfiRate: 41.3, opsRfis: 1687, cvHits: 548 },
+    { week: "Sep 14",  alerts: 5718, rfis: 2392, rfiRate: 41.8, opsRfis: 505,  cvHits: 236 }
+  ],
+
+  weeklyFraud: [
+    { week: "Jun 29",  fraudAmt: 124310,  entFraudAmt: 1863,    smeFraudAmt: 122446,  depositUsd: 3328030521, entDepositUsd: 2066404592, smeDepositUsd: 1232216234, fraudRate: 0.0037, entFraudRate: 0.0001, smeFraudRate: 0.0099 },
+    { week: "Jul 6",   fraudAmt: 269607,  entFraudAmt: 195831,  smeFraudAmt: 73775,   depositUsd: 2771817408, entDepositUsd: 1569707267, smeDepositUsd: 1177984446, fraudRate: 0.0097, entFraudRate: 0.0125, smeFraudRate: 0.0063 },
+    { week: "Jul 13",  fraudAmt: 906982,  entFraudAmt: 14350,   smeFraudAmt: 887066,  depositUsd: 2770735287, entDepositUsd: 1540895635, smeDepositUsd: 1194546836, fraudRate: 0.0327, entFraudRate: 0.0009, smeFraudRate: 0.0743 },
+    { week: "Jul 20",  fraudAmt: 957489,  entFraudAmt: 502834,  smeFraudAmt: 447119,  depositUsd: 2867424532, entDepositUsd: 1594399367, smeDepositUsd: 1248881410, fraudRate: 0.0334, entFraudRate: 0.0315, smeFraudRate: 0.0358 },
+    { week: "Jul 27",  fraudAmt: 795185,  entFraudAmt: 85797,   smeFraudAmt: 704770,  depositUsd: 3040055807, entDepositUsd: 1727873381, smeDepositUsd: 1287466783, fraudRate: 0.0262, entFraudRate: 0.0050, smeFraudRate: 0.0547 },
+    { week: "Aug 3",   fraudAmt: 3112379, entFraudAmt: 204420,  smeFraudAmt: 2855665, depositUsd: 2876229234, entDepositUsd: 1622945062, smeDepositUsd: 1227770041, fraudRate: 0.1082, entFraudRate: 0.0126, smeFraudRate: 0.2326 },
+    { week: "Aug 10",  fraudAmt: 439516,  entFraudAmt: 77350,   smeFraudAmt: 362096,  depositUsd: 2728418824, entDepositUsd: 1505721392, smeDepositUsd: 1198000661, fraudRate: 0.0161, entFraudRate: 0.0051, smeFraudRate: 0.0302 },
+    { week: "Aug 17",  fraudAmt: 918891,  entFraudAmt: 685505,  smeFraudAmt: 233386,  depositUsd: 2864348634, entDepositUsd: 1620957692, smeDepositUsd: 1216043416, fraudRate: 0.0321, entFraudRate: 0.0423, smeFraudRate: 0.0192 },
+    { week: "Aug 24",  fraudAmt: 909044,  entFraudAmt: 102414,  smeFraudAmt: 806630,  depositUsd: 3085148950, entDepositUsd: 1740103935, smeDepositUsd: 1319993887, fraudRate: 0.0295, entFraudRate: 0.0059, smeFraudRate: 0.0611 },
+    { week: "Aug 31",  fraudAmt: 2150270, entFraudAmt: 143446,  smeFraudAmt: 2006458, depositUsd: 3189367255, entDepositUsd: 1894502276, smeDepositUsd: 1266373569, fraudRate: 0.0674, entFraudRate: 0.0076, smeFraudRate: 0.1584 },
+    { week: "Sep 7",   fraudAmt: 991220,  entFraudAmt: 30099,   smeFraudAmt: 961121,  depositUsd: 2732662383, entDepositUsd: 1487263781, smeDepositUsd: 1219326740, fraudRate: 0.0363, entFraudRate: 0.0020, smeFraudRate: 0.0788 },
+    { week: "Sep 14",  fraudAmt: 896089,  entFraudAmt: 5196,    smeFraudAmt: 890893,  depositUsd: 2884721832, entDepositUsd: 1618819759, smeDepositUsd: 1243870592, fraudRate: 0.0311, entFraudRate: 0.0003, smeFraudRate: 0.0716 }
+  ],
+
+  fraudTrendFull: [
+    { week: "Jan 5", fraudRate: 0.0087, entFraudRate: 0.0, smeFraudRate: 0.0243 },
+    { week: "Jan 12", fraudRate: 0.0161, entFraudRate: 0.0, smeFraudRate: 0.0428 },
+    { week: "Jan 19", fraudRate: 0.0307, entFraudRate: 0.0002, smeFraudRate: 0.0825 },
+    { week: "Jan 26", fraudRate: 0.0121, entFraudRate: 0.0002, smeFraudRate: 0.0337 },
+    { week: "Feb 2", fraudRate: 0.0036, entFraudRate: 0.0027, smeFraudRate: 0.0053 },
+    { week: "Feb 9", fraudRate: 0.009, entFraudRate: 0.0003, smeFraudRate: 0.0257 },
+    { week: "Feb 16", fraudRate: 0.0061, entFraudRate: 0.0001, smeFraudRate: 0.0207 },
+    { week: "Feb 23", fraudRate: 0.0064, entFraudRate: 0.0001, smeFraudRate: 0.0194 },
+    { week: "Mar 2", fraudRate: 0.0336, entFraudRate: 0.0, smeFraudRate: 0.0944 },
+    { week: "Mar 9", fraudRate: 0.0141, entFraudRate: 0.001, smeFraudRate: 0.04 },
+    { week: "Mar 16", fraudRate: 0.0059, entFraudRate: 0.0, smeFraudRate: 0.0162 },
+    { week: "Mar 23", fraudRate: 0.0039, entFraudRate: 0.0, smeFraudRate: 0.012 },
+    { week: "Mar 30", fraudRate: 0.0273, entFraudRate: 0.028, smeFraudRate: 0.0262 },
+    { week: "Apr 6", fraudRate: 0.0246, entFraudRate: 0.0, smeFraudRate: 0.0709 },
+    { week: "Apr 13", fraudRate: 0.0402, entFraudRate: 0.0, smeFraudRate: 0.1163 },
+    { week: "Apr 20", fraudRate: 0.0127, entFraudRate: 0.0009, smeFraudRate: 0.0342 },
+    { week: "Apr 27", fraudRate: 0.0044, entFraudRate: 0.0002, smeFraudRate: 0.0128 },
+    { week: "May 4", fraudRate: 0.0099, entFraudRate: 0.0002, smeFraudRate: 0.0296 },
+    { week: "May 11", fraudRate: 0.0024, entFraudRate: 0.0024, smeFraudRate: 0.0024 },
+    { week: "May 18", fraudRate: 0.0103, entFraudRate: 0.0083, smeFraudRate: 0.0145 },
+    { week: "May 25", fraudRate: 0.0033, entFraudRate: 0.0, smeFraudRate: 0.0094 },
+    { week: "Jun 1", fraudRate: 0.0042, entFraudRate: 0.0002, smeFraudRate: 0.0123 },
+    { week: "Jun 8", fraudRate: 0.0047, entFraudRate: 0.0017, smeFraudRate: 0.0109 },
+    { week: "Jun 15", fraudRate: 0.0047, entFraudRate: 0.0008, smeFraudRate: 0.0123 },
+    { week: "Jun 22", fraudRate: 0.0067, entFraudRate: 0.0043, smeFraudRate: 0.011 },
+    { week: "Jun 29", fraudRate: 0.0075, entFraudRate: 0.0, smeFraudRate: 0.0233 },
+    { week: "Jul 6", fraudRate: 0.0081, entFraudRate: 0.0055, smeFraudRate: 0.0126 },
+    { week: "Jul 13", fraudRate: 0.0032, entFraudRate: 0.0017, smeFraudRate: 0.0056 },
+    { week: "Jul 20", fraudRate: 0.0057, entFraudRate: 0.0, smeFraudRate: 0.0153 },
+    { week: "Jul 27", fraudRate: 0.0034, entFraudRate: 0.0043, smeFraudRate: 0.002 },
+    { week: "Aug 3", fraudRate: 0.0218, entFraudRate: 0.0013, smeFraudRate: 0.0582 },
+    { week: "Aug 10", fraudRate: 0.0128, entFraudRate: 0.002, smeFraudRate: 0.0298 },
+    { week: "Aug 17", fraudRate: 0.0031, entFraudRate: 0.0025, smeFraudRate: 0.0042 },
+    { week: "Aug 24", fraudRate: 0.0014, entFraudRate: 0.0, smeFraudRate: 0.0036 },
+    { week: "Aug 31", fraudRate: 0.0013, entFraudRate: 0.0007, smeFraudRate: 0.0022 },
+    { week: "Sep 7", fraudRate: 0.0081, entFraudRate: 0.0006, smeFraudRate: 0.0201 }
+  ],
+
+  fraudRecall: {
+    asOf: "2026-09-17",
+    prevAsOf: "2026-09-10",
+    regions: [
+      { name: "ANZ",      deposits: 624.6, fraud: 1.91, bps: 30.6, prevBps: null },
+      { name: "EMEA",     deposits: 774.0, fraud: 0.51, bps: 6.6,  prevBps: null },
+      { name: "GC",       deposits: 1795.0, fraud: 1.36, bps: 7.6, prevBps: null },
+      { name: "HK & SEA", deposits: 1349.9, fraud: 0.33, bps: 2.5, prevBps: null },
+      { name: "NA",       deposits: 414.1, fraud: 0.33, bps: 8.0,  prevBps: null }
+    ],
+    total: { deposits: 4957.6, fraud: 4.45, bps: 9.0, prevBps: null },
+    prev: { asOf: "2026-09-10", deposits: 4820.0, fraud: 5.12, bps: 10.6 }
+  },
+
+  amountBand: {
+    period: "Jul–Sep 2026",
+    segments: [
+      { name: "Enterprise", rows: [
+        { band: "0-10k",    alertPct: 0.104, rfiPct: 0.029, txns: 3301289, alerts: 3448,  rfis: 946,  rejects: 728,  alertToRfi: 27.4, rfiToReject: 44.6, alertToReject: 21.1, alertToAction: 36.3 },
+        { band: "10k-100k", alertPct: 0.729, rfiPct: 0.171, txns: 191656,  alerts: 1397,  rfis: 327,  rejects: 129,  alertToRfi: 23.4, rfiToReject: 19.3, alertToReject: 9.2,  alertToAction: 28.1 },
+        { band: "100k-1m",  alertPct: 4.984, rfiPct: 0.887, txns: 39668,   alerts: 1977,  rfis: 352,  rejects: 89,   alertToRfi: 17.8, rfiToReject: 17.3, alertToReject: 4.5,  alertToAction: 19.2 },
+        { band: "1m+",      alertPct: 6.895, rfiPct: 1.163, txns: 4989,    alerts: 344,   rfis: 58,   rejects: 9,    alertToRfi: 16.9, rfiToReject: 10.3, alertToReject: 2.6,  alertToAction: 17.7 },
+        { band: "ALL",      alertPct: 0.203, rfiPct: 0.048, txns: 3537602, alerts: 7166,  rfis: 1683, rejects: 955,  alertToRfi: 23.5, rfiToReject: 32.8, alertToReject: 13.3, alertToAction: 29.1 }
+      ]},
+      { name: "Enterprise + T1 SME", rows: [
+        { band: "0-10k",    alertPct: 0.133, rfiPct: 0.030, txns: 4274485, alerts: 5668,  rfis: 1271,  rejects: 832,  alertToRfi: 22.4, rfiToReject: 39.3, alertToReject: 14.7, alertToAction: 28.3 },
+        { band: "10k-100k", alertPct: 0.783, rfiPct: 0.203, txns: 270364,  alerts: 2117,  rfis: 550,   rejects: 200,  alertToRfi: 26.0, rfiToReject: 20.7, alertToReject: 9.4,  alertToAction: 30.0 },
+        { band: "100k-1m",  alertPct: 4.850, rfiPct: 0.985, txns: 58860,   alerts: 2855,  rfis: 580,   rejects: 146,  alertToRfi: 20.3, rfiToReject: 17.8, alertToReject: 5.1,  alertToAction: 21.8 },
+        { band: "1m+",      alertPct: 6.556, rfiPct: 1.287, txns: 6528,    alerts: 428,   rfis: 84,    rejects: 10,   alertToRfi: 19.6, rfiToReject: 8.3,  alertToReject: 2.3,  alertToAction: 20.3 },
+        { band: "ALL",      alertPct: 0.240, rfiPct: 0.054, txns: 4610237, alerts: 11068, rfis: 2485,  rejects: 1188, alertToRfi: 22.5, rfiToReject: 29.1, alertToReject: 10.7, alertToAction: 26.6 }
+      ]},
+      { name: "T2-T4 SME", rows: [
+        { band: "0-10k",    alertPct: 0.781, rfiPct: 0.365, txns: 3471915, alerts: 27110, rfis: 12687, rejects: 7642,  alertToRfi: 46.8, rfiToReject: 42.6, alertToReject: 28.2, alertToAction: 55.1 },
+        { band: "10k-100k", alertPct: 3.812, rfiPct: 1.738, txns: 361121,  alerts: 13765, rfis: 6277,  rejects: 2230,  alertToRfi: 45.6, rfiToReject: 27.8, alertToReject: 16.2, alertToAction: 49.1 },
+        { band: "100k-1m",  alertPct: 15.463, rfiPct: 6.098, txns: 46344,  alerts: 7166,  rfis: 2826,  rejects: 713,   alertToRfi: 39.4, rfiToReject: 21.2, alertToReject: 9.9,  alertToAction: 41.0 },
+        { band: "1m+",      alertPct: 30.683, rfiPct: 14.029, txns: 1333,  alerts: 409,   rfis: 187,   rejects: 29,    alertToRfi: 45.7, rfiToReject: 15.0, alertToReject: 7.1,  alertToAction: 46.0 },
+        { band: "ALL",      alertPct: 1.248, rfiPct: 0.566, txns: 3880713, alerts: 48450, rfis: 21977, rejects: 10614, alertToRfi: 45.4, rfiToReject: 35.4, alertToReject: 21.9, alertToAction: 51.2 }
+      ]},
+      { name: "TOTAL", rows: [
+        { band: "0-10k",    alertPct: 0.511, rfiPct: 0.198, txns: 8129632, alerts: 41517, rfis: 16108, rejects: 9954,  alertToRfi: 38.8, rfiToReject: 41.5, alertToReject: 24.0, alertToAction: 46.7 },
+        { band: "10k-100k", alertPct: 2.560, rfiPct: 1.102, txns: 640820,  alerts: 16406, rfis: 7064,  rejects: 2500,  alertToRfi: 43.1, rfiToReject: 26.8, alertToReject: 15.2, alertToAction: 46.7 },
+        { band: "100k-1m",  alertPct: 9.513, rfiPct: 3.232, txns: 105411,  alerts: 10028, rfis: 3407,  rejects: 860,   alertToRfi: 34.0, rfiToReject: 20.6, alertToReject: 8.6,  alertToAction: 35.6 },
+        { band: "1m+",      alertPct: 10.646, rfiPct: 3.447, txns: 7862,   alerts: 837,   rfis: 271,   rejects: 39,    alertToRfi: 32.4, rfiToReject: 12.9, alertToReject: 4.7,  alertToAction: 32.9 },
+        { band: "ALL",      alertPct: 0.774, rfiPct: 0.302, txns: 8883725, alerts: 68788, rfis: 26850, rejects: 13353, alertToRfi: 39.0, rfiToReject: 34.7, alertToReject: 19.4, alertToAction: 44.9 }
+      ]}
+    ]
+  },
+
+  targets: { overall: 0.70, sme: 0.80, fraudOverall: 0.01, fraudSme: 0.10 },
+
+  topRulesByWeek: [
+    { week: "Jul 6", ruleId: "137520", ruleName: "Payer name mismatch (Stake deposit)", alerts: 960, rfis: 239, rejects: 179, clients: 841, cv: false },
+    { week: "Jul 6", ruleId: "114", ruleName: "Beneficiary name mismatch", alerts: 572, rfis: 264, rejects: 120, clients: 326, cv: false },
+    { week: "Jul 6", ruleId: "49", ruleName: "Very High Risk Country", alerts: 559, rfis: 181, rejects: 16, clients: 116, cv: false },
+    { week: "Jul 6", ruleId: "112", ruleName: "Payout higher than expected max (established)", alerts: 353, rfis: 119, rejects: 33, clients: 319, cv: false },
+    { week: "Jul 6", ruleId: "154", ruleName: "Repeated deposits from same remitter", alerts: 337, rfis: 124, rejects: 23, clients: 145, cv: false },
+    { week: "Jul 6", ruleId: "136", ruleName: "Client on watchlist - REVIEW", alerts: 329, rfis: 68, rejects: 51, clients: 136, cv: false },
+    { week: "Jul 6", ruleId: "133", ruleName: "Rapid movement of funds", alerts: 279, rfis: 99, rejects: 32, clients: 253, cv: false },
+    { week: "Jul 6", ruleId: "25479", ruleName: "3rd party deposit, online client without valid URL", alerts: 251, rfis: 251, rejects: 0, clients: 204, cv: true },
+    { week: "Jul 6", ruleId: "118", ruleName: "Enhanced monitoring - 3rd party deposit value higher than expected (new)", alerts: 220, rfis: 125, rejects: 43, clients: 201, cv: false },
+    { week: "Jul 6", ruleId: "159", ruleName: "Repeated payouts to same 3rd party individual", alerts: 187, rfis: 162, rejects: 10, clients: 13, cv: false },
+    { week: "Jul 6", ruleId: "142", ruleName: "First 5 deposits from individual remitters", alerts: 178, rfis: 135, rejects: 54, clients: 136, cv: false },
+    { week: "Jul 6", ruleId: "146", ruleName: "Prev txn same counterparty cancelled after RFI", alerts: 171, rfis: 122, rejects: 97, clients: 110, cv: false },
+    { week: "Jul 6", ruleId: "113", ruleName: "High value 3rd party deposit from individual/unknown", alerts: 166, rfis: 89, rejects: 14, clients: 150, cv: false },
+    { week: "Jul 6", ruleId: "110", ruleName: "3rd party deposit value higher than expected (established)", alerts: 152, rfis: 62, rejects: 12, clients: 149, cv: false },
+    { week: "Jul 6", ruleId: "147", ruleName: "Prev txn same counterparty rejected", alerts: 147, rfis: 42, rejects: 48, clients: 81, cv: false },
+    { week: "Jul 6", ruleId: "138", ruleName: "Round amount deposits from individuals", alerts: 130, rfis: 88, rejects: 38, clients: 98, cv: false },
+    { week: "Jul 6", ruleId: "109", ruleName: "3rd party deposit value higher than expected (new)", alerts: 129, rfis: 62, rejects: 8, clients: 121, cv: false },
+    { week: "Jul 6", ruleId: "55", ruleName: "Beneficiary name in blacklist", alerts: 126, rfis: 8, rejects: 22, clients: 76, cv: false },
+    { week: "Jul 6", ruleId: "111", ruleName: "Payout higher than expected max (new client)", alerts: 125, rfis: 41, rejects: 5, clients: 106, cv: false },
+    { week: "Jul 6", ruleId: "119", ruleName: "Enhanced monitoring - Payout higher than expected (new)", alerts: 110, rfis: 43, rejects: 22, clients: 93, cv: false },
+    { week: "Jul 6", ruleId: "145", ruleName: "Individual/Unknown remitter ratio 24H flag", alerts: 107, rfis: 41, rejects: 27, clients: 10, cv: false },
+    { week: "Jul 6", ruleId: "141941", ruleName: "US/EMEA high risk deposit", alerts: 105, rfis: 39, rejects: 12, clients: 49, cv: false },
+    { week: "Jul 6", ruleId: "141052", ruleName: "US/EMEA high risk payment", alerts: 83, rfis: 40, rejects: 17, clients: 23, cv: false },
+    { week: "Jul 13", ruleId: "137520", ruleName: "Payer name mismatch (Stake deposit)", alerts: 1250, rfis: 298, rejects: 251, clients: 1108, cv: false },
+    { week: "Jul 13", ruleId: "114", ruleName: "Beneficiary name mismatch", alerts: 806, rfis: 443, rejects: 260, clients: 441, cv: false },
+    { week: "Jul 13", ruleId: "112", ruleName: "Payout higher than expected max (established)", alerts: 458, rfis: 148, rejects: 51, clients: 370, cv: false },
+    { week: "Jul 13", ruleId: "49", ruleName: "Very High Risk Country", alerts: 401, rfis: 45, rejects: 11, clients: 70, cv: false },
+    { week: "Jul 13", ruleId: "154", ruleName: "Repeated deposits from same remitter", alerts: 381, rfis: 174, rejects: 27, clients: 141, cv: false },
+    { week: "Jul 13", ruleId: "25479", ruleName: "3rd party deposit, online client without valid URL", alerts: 323, rfis: 323, rejects: 0, clients: 238, cv: true },
+    { week: "Jul 13", ruleId: "133", ruleName: "Rapid movement of funds", alerts: 286, rfis: 85, rejects: 23, clients: 267, cv: false },
+    { week: "Jul 13", ruleId: "136", ruleName: "Client on watchlist - REVIEW", alerts: 269, rfis: 40, rejects: 39, clients: 129, cv: false },
+    { week: "Jul 13", ruleId: "118", ruleName: "Enhanced monitoring - 3rd party deposit value higher than expected (new)", alerts: 221, rfis: 132, rejects: 42, clients: 199, cv: false },
+    { week: "Jul 13", ruleId: "113", ruleName: "High value 3rd party deposit from individual/unknown", alerts: 190, rfis: 95, rejects: 14, clients: 166, cv: false },
+    { week: "Jul 13", ruleId: "110", ruleName: "3rd party deposit value higher than expected (established)", alerts: 170, rfis: 63, rejects: 9, clients: 164, cv: false },
+    { week: "Jul 13", ruleId: "142", ruleName: "First 5 deposits from individual remitters", alerts: 162, rfis: 118, rejects: 44, clients: 131, cv: false },
+    { week: "Jul 13", ruleId: "109", ruleName: "3rd party deposit value higher than expected (new)", alerts: 138, rfis: 77, rejects: 11, clients: 129, cv: false },
+    { week: "Jul 13", ruleId: "146", ruleName: "Prev txn same counterparty cancelled after RFI", alerts: 129, rfis: 84, rejects: 78, clients: 86, cv: false },
+    { week: "Jul 13", ruleId: "138", ruleName: "Round amount deposits from individuals", alerts: 118, rfis: 70, rejects: 29, clients: 94, cv: false },
+    { week: "Jul 13", ruleId: "119", ruleName: "Enhanced monitoring - Payout higher than expected (new)", alerts: 113, rfis: 49, rejects: 27, clients: 93, cv: false },
+    { week: "Jul 13", ruleId: "55", ruleName: "Beneficiary name in blacklist", alerts: 112, rfis: 7, rejects: 24, clients: 71, cv: false },
+    { week: "Jul 13", ruleId: "111", ruleName: "Payout higher than expected max (new client)", alerts: 102, rfis: 31, rejects: 0, clients: 78, cv: false },
+    { week: "Jul 13", ruleId: "147", ruleName: "Prev txn same counterparty rejected", alerts: 100, rfis: 25, rejects: 25, clients: 75, cv: false },
+    { week: "Jul 13", ruleId: "141052", ruleName: "US/EMEA high risk payment", alerts: 87, rfis: 23, rejects: 46, clients: 23, cv: false },
+    { week: "Jul 13", ruleId: "145", ruleName: "Individual/Unknown remitter ratio 24H flag", alerts: 49, rfis: 26, rejects: 9, clients: 13, cv: false },
+    { week: "Jul 13", ruleId: "141941", ruleName: "US/EMEA high risk deposit", alerts: 44, rfis: 24, rejects: 10, clients: 30, cv: false },
+    { week: "Jul 13", ruleId: "159", ruleName: "Repeated payouts to same 3rd party individual", alerts: 39, rfis: 7, rejects: 9, clients: 11, cv: false },
+    { week: "Jul 20", ruleId: "137520", ruleName: "Payer name mismatch (Stake deposit)", alerts: 1283, rfis: 222, rejects: 135, clients: 1170, cv: false },
+    { week: "Jul 20", ruleId: "114", ruleName: "Beneficiary name mismatch", alerts: 632, rfis: 340, rejects: 192, clients: 390, cv: false },
+    { week: "Jul 20", ruleId: "112", ruleName: "Payout higher than expected max (established)", alerts: 401, rfis: 123, rejects: 32, clients: 359, cv: false },
+    { week: "Jul 20", ruleId: "136", ruleName: "Client on watchlist - REVIEW", alerts: 369, rfis: 36, rejects: 52, clients: 173, cv: false },
+    { week: "Jul 20", ruleId: "154", ruleName: "Repeated deposits from same remitter", alerts: 321, rfis: 130, rejects: 23, clients: 150, cv: false },
+    { week: "Jul 20", ruleId: "133", ruleName: "Rapid movement of funds", alerts: 314, rfis: 90, rejects: 44, clients: 289, cv: false },
+    { week: "Jul 20", ruleId: "49", ruleName: "Very High Risk Country", alerts: 280, rfis: 42, rejects: 11, clients: 55, cv: false },
+    { week: "Jul 20", ruleId: "25479", ruleName: "3rd party deposit, online client without valid URL", alerts: 261, rfis: 261, rejects: 0, clients: 185, cv: true },
+    { week: "Jul 20", ruleId: "118", ruleName: "Enhanced monitoring - 3rd party deposit value higher than expected (new)", alerts: 175, rfis: 95, rejects: 32, clients: 162, cv: false },
+    { week: "Jul 20", ruleId: "113", ruleName: "High value 3rd party deposit from individual/unknown", alerts: 171, rfis: 71, rejects: 15, clients: 156, cv: false },
+    { week: "Jul 20", ruleId: "110", ruleName: "3rd party deposit value higher than expected (established)", alerts: 155, rfis: 79, rejects: 11, clients: 152, cv: false },
+    { week: "Jul 20", ruleId: "109", ruleName: "3rd party deposit value higher than expected (new)", alerts: 149, rfis: 73, rejects: 6, clients: 133, cv: false },
+    { week: "Jul 20", ruleId: "147", ruleName: "Prev txn same counterparty rejected", alerts: 137, rfis: 23, rejects: 29, clients: 45, cv: false },
+    { week: "Jul 20", ruleId: "111", ruleName: "Payout higher than expected max (new client)", alerts: 135, rfis: 37, rejects: 2, clients: 112, cv: false },
+    { week: "Jul 20", ruleId: "146", ruleName: "Prev txn same counterparty cancelled after RFI", alerts: 123, rfis: 83, rejects: 74, clients: 84, cv: false },
+    { week: "Jul 20", ruleId: "142", ruleName: "First 5 deposits from individual remitters", alerts: 122, rfis: 93, rejects: 42, clients: 113, cv: false },
+    { week: "Jul 20", ruleId: "55", ruleName: "Beneficiary name in blacklist", alerts: 108, rfis: 6, rejects: 26, clients: 69, cv: false },
+    { week: "Jul 20", ruleId: "138", ruleName: "Round amount deposits from individuals", alerts: 95, rfis: 52, rejects: 19, clients: 76, cv: false },
+    { week: "Jul 20", ruleId: "119", ruleName: "Enhanced monitoring - Payout higher than expected (new)", alerts: 81, rfis: 34, rejects: 15, clients: 73, cv: false },
+    { week: "Jul 20", ruleId: "141941", ruleName: "US/EMEA high risk deposit", alerts: 60, rfis: 35, rejects: 6, clients: 32, cv: false },
+    { week: "Jul 20", ruleId: "145", ruleName: "Individual/Unknown remitter ratio 24H flag", alerts: 59, rfis: 34, rejects: 20, clients: 11, cv: false },
+    { week: "Jul 20", ruleId: "141052", ruleName: "US/EMEA high risk payment", alerts: 52, rfis: 18, rejects: 12, clients: 27, cv: false },
+    { week: "Jul 20", ruleId: "159", ruleName: "Repeated payouts to same 3rd party individual", alerts: 32, rfis: 14, rejects: 17, clients: 13, cv: false },
+    { week: "Jul 27", ruleId: "137520", ruleName: "Payer name mismatch (Stake deposit)", alerts: 758, rfis: 193, rejects: 139, clients: 690, cv: false },
+    { week: "Jul 27", ruleId: "114", ruleName: "Beneficiary name mismatch", alerts: 621, rfis: 305, rejects: 148, clients: 384, cv: false },
+    { week: "Jul 27", ruleId: "136", ruleName: "Client on watchlist - REVIEW", alerts: 516, rfis: 45, rejects: 56, clients: 189, cv: false },
+    { week: "Jul 27", ruleId: "112", ruleName: "Payout higher than expected max (established)", alerts: 461, rfis: 145, rejects: 46, clients: 406, cv: false },
+    { week: "Jul 27", ruleId: "133", ruleName: "Rapid movement of funds", alerts: 299, rfis: 94, rejects: 44, clients: 270, cv: false },
+    { week: "Jul 27", ruleId: "49", ruleName: "Very High Risk Country", alerts: 296, rfis: 56, rejects: 23, clients: 94, cv: false },
+    { week: "Jul 27", ruleId: "25479", ruleName: "3rd party deposit, online client without valid URL", alerts: 295, rfis: 295, rejects: 0, clients: 221, cv: true },
+    { week: "Jul 27", ruleId: "154", ruleName: "Repeated deposits from same remitter", alerts: 282, rfis: 76, rejects: 15, clients: 134, cv: false },
+    { week: "Jul 27", ruleId: "113", ruleName: "High value 3rd party deposit from individual/unknown", alerts: 204, rfis: 82, rejects: 13, clients: 174, cv: false },
+    { week: "Jul 27", ruleId: "118", ruleName: "Enhanced monitoring - 3rd party deposit value higher than expected (new)", alerts: 203, rfis: 119, rejects: 45, clients: 182, cv: false },
+    { week: "Jul 27", ruleId: "110", ruleName: "3rd party deposit value higher than expected (established)", alerts: 185, rfis: 80, rejects: 6, clients: 170, cv: false },
+    { week: "Jul 27", ruleId: "109", ruleName: "3rd party deposit value higher than expected (new)", alerts: 166, rfis: 86, rejects: 14, clients: 156, cv: false },
+    { week: "Jul 27", ruleId: "142", ruleName: "First 5 deposits from individual remitters", alerts: 158, rfis: 105, rejects: 51, clients: 125, cv: false },
+    { week: "Jul 27", ruleId: "138", ruleName: "Round amount deposits from individuals", alerts: 131, rfis: 85, rejects: 31, clients: 98, cv: false },
+    { week: "Jul 27", ruleId: "111", ruleName: "Payout higher than expected max (new client)", alerts: 128, rfis: 44, rejects: 5, clients: 111, cv: false },
+    { week: "Jul 27", ruleId: "146", ruleName: "Prev txn same counterparty cancelled after RFI", alerts: 124, rfis: 94, rejects: 67, clients: 88, cv: false },
+    { week: "Jul 27", ruleId: "55", ruleName: "Beneficiary name in blacklist", alerts: 112, rfis: 11, rejects: 26, clients: 76, cv: false },
+    { week: "Jul 27", ruleId: "119", ruleName: "Enhanced monitoring - Payout higher than expected (new)", alerts: 97, rfis: 36, rejects: 21, clients: 89, cv: false },
+    { week: "Jul 27", ruleId: "141941", ruleName: "US/EMEA high risk deposit", alerts: 59, rfis: 28, rejects: 6, clients: 38, cv: false },
+    { week: "Jul 27", ruleId: "147", ruleName: "Prev txn same counterparty rejected", alerts: 56, rfis: 20, rejects: 30, clients: 42, cv: false },
+    { week: "Jul 27", ruleId: "141052", ruleName: "US/EMEA high risk payment", alerts: 51, rfis: 29, rejects: 13, clients: 28, cv: false },
+    { week: "Jul 27", ruleId: "145", ruleName: "Individual/Unknown remitter ratio 24H flag", alerts: 49, rfis: 18, rejects: 1, clients: 15, cv: false },
+    { week: "Jul 27", ruleId: "159", ruleName: "Repeated payouts to same 3rd party individual", alerts: 43, rfis: 9, rejects: 16, clients: 13, cv: false },
+    { week: "Jul 27", ruleId: "146585", ruleName: "NewBene suspicious login - large amt review", alerts: 30, rfis: 15, rejects: 7, clients: 26, cv: false },
+    { week: "Aug 3", ruleId: "137520", ruleName: "Payer name mismatch (Stake deposit)", alerts: 705, rfis: 181, rejects: 121, clients: 632, cv: false },
+    { week: "Aug 3", ruleId: "114", ruleName: "Beneficiary name mismatch", alerts: 594, rfis: 301, rejects: 153, clients: 384, cv: false },
+    { week: "Aug 3", ruleId: "136", ruleName: "Client on watchlist - REVIEW", alerts: 580, rfis: 51, rejects: 261, clients: 171, cv: false },
+    { week: "Aug 3", ruleId: "112", ruleName: "Payout higher than expected max (established)", alerts: 398, rfis: 116, rejects: 31, clients: 342, cv: false },
+    { week: "Aug 3", ruleId: "25479", ruleName: "3rd party deposit, online client without valid URL", alerts: 304, rfis: 304, rejects: 0, clients: 234, cv: true },
+    { week: "Aug 3", ruleId: "133", ruleName: "Rapid movement of funds", alerts: 285, rfis: 107, rejects: 51, clients: 262, cv: false },
+    { week: "Aug 3", ruleId: "154", ruleName: "Repeated deposits from same remitter", alerts: 221, rfis: 59, rejects: 27, clients: 123, cv: false },
+    { week: "Aug 3", ruleId: "118", ruleName: "Enhanced monitoring - 3rd party deposit value higher than expected (new)", alerts: 183, rfis: 102, rejects: 47, clients: 169, cv: false },
+    { week: "Aug 3", ruleId: "146", ruleName: "Prev txn same counterparty cancelled after RFI", alerts: 164, rfis: 115, rejects: 103, clients: 96, cv: false },
+    { week: "Aug 3", ruleId: "113", ruleName: "High value 3rd party deposit from individual/unknown", alerts: 159, rfis: 76, rejects: 14, clients: 143, cv: false },
+    { week: "Aug 3", ruleId: "109", ruleName: "3rd party deposit value higher than expected (new)", alerts: 156, rfis: 87, rejects: 11, clients: 144, cv: false },
+    { week: "Aug 3", ruleId: "110", ruleName: "3rd party deposit value higher than expected (established)", alerts: 150, rfis: 64, rejects: 17, clients: 140, cv: false },
+    { week: "Aug 3", ruleId: "146585", ruleName: "NewBene suspicious login - large amt review", alerts: 139, rfis: 82, rejects: 52, clients: 90, cv: false },
+    { week: "Aug 3", ruleId: "142", ruleName: "First 5 deposits from individual remitters", alerts: 125, rfis: 91, rejects: 47, clients: 101, cv: false },
+    { week: "Aug 3", ruleId: "49", ruleName: "Very High Risk Country", alerts: 122, rfis: 37, rejects: 8, clients: 51, cv: false },
+    { week: "Aug 3", ruleId: "111", ruleName: "Payout higher than expected max (new client)", alerts: 118, rfis: 35, rejects: 5, clients: 94, cv: false },
+    { week: "Aug 3", ruleId: "55", ruleName: "Beneficiary name in blacklist", alerts: 113, rfis: 4, rejects: 29, clients: 70, cv: false },
+    { week: "Aug 3", ruleId: "138", ruleName: "Round amount deposits from individuals", alerts: 110, rfis: 74, rejects: 33, clients: 90, cv: false },
+    { week: "Aug 3", ruleId: "159", ruleName: "Repeated payouts to same 3rd party individual", alerts: 104, rfis: 24, rejects: 82, clients: 12, cv: false },
+    { week: "Aug 3", ruleId: "119", ruleName: "Enhanced monitoring - Payout higher than expected (new)", alerts: 99, rfis: 38, rejects: 22, clients: 88, cv: false },
+    { week: "Aug 3", ruleId: "141941", ruleName: "US/EMEA high risk deposit", alerts: 67, rfis: 39, rejects: 22, clients: 33, cv: false },
+    { week: "Aug 3", ruleId: "147", ruleName: "Prev txn same counterparty rejected", alerts: 64, rfis: 19, rejects: 24, clients: 53, cv: false },
+    { week: "Aug 3", ruleId: "145", ruleName: "Individual/Unknown remitter ratio 24H flag", alerts: 61, rfis: 11, rejects: 1, clients: 11, cv: false },
+    { week: "Aug 3", ruleId: "141052", ruleName: "US/EMEA high risk payment", alerts: 40, rfis: 18, rejects: 11, clients: 26, cv: false },
+    { week: "Aug 10", ruleId: "137520", ruleName: "Payer name mismatch (Stake deposit)", alerts: 764, rfis: 168, rejects: 115, clients: 707, cv: false },
+    { week: "Aug 10", ruleId: "114", ruleName: "Beneficiary name mismatch", alerts: 554, rfis: 279, rejects: 142, clients: 358, cv: false },
+    { week: "Aug 10", ruleId: "136", ruleName: "Client on watchlist - REVIEW", alerts: 484, rfis: 49, rejects: 80, clients: 129, cv: false },
+    { week: "Aug 10", ruleId: "112", ruleName: "Payout higher than expected max (established)", alerts: 352, rfis: 89, rejects: 27, clients: 311, cv: false },
+    { week: "Aug 10", ruleId: "25479", ruleName: "3rd party deposit, online client without valid URL", alerts: 339, rfis: 339, rejects: 0, clients: 234, cv: true },
+    { week: "Aug 10", ruleId: "49", ruleName: "Very High Risk Country", alerts: 298, rfis: 30, rejects: 20, clients: 41, cv: false },
+    { week: "Aug 10", ruleId: "133", ruleName: "Rapid movement of funds", alerts: 285, rfis: 91, rejects: 35, clients: 267, cv: false },
+    { week: "Aug 10", ruleId: "154", ruleName: "Repeated deposits from same remitter", alerts: 279, rfis: 73, rejects: 28, clients: 129, cv: false },
+    { week: "Aug 10", ruleId: "118", ruleName: "Enhanced monitoring - 3rd party deposit value higher than expected (new)", alerts: 207, rfis: 117, rejects: 55, clients: 187, cv: false },
+    { week: "Aug 10", ruleId: "146", ruleName: "Prev txn same counterparty cancelled after RFI", alerts: 201, rfis: 157, rejects: 126, clients: 125, cv: false },
+    { week: "Aug 10", ruleId: "113", ruleName: "High value 3rd party deposit from individual/unknown", alerts: 192, rfis: 79, rejects: 12, clients: 175, cv: false },
+    { week: "Aug 10", ruleId: "142", ruleName: "First 5 deposits from individual remitters", alerts: 163, rfis: 110, rejects: 56, clients: 129, cv: false },
+    { week: "Aug 10", ruleId: "109", ruleName: "3rd party deposit value higher than expected (new)", alerts: 146, rfis: 75, rejects: 12, clients: 132, cv: false },
+    { week: "Aug 10", ruleId: "110", ruleName: "3rd party deposit value higher than expected (established)", alerts: 141, rfis: 52, rejects: 12, clients: 137, cv: false },
+    { week: "Aug 10", ruleId: "138", ruleName: "Round amount deposits from individuals", alerts: 130, rfis: 77, rejects: 38, clients: 91, cv: false },
+    { week: "Aug 10", ruleId: "111", ruleName: "Payout higher than expected max (new client)", alerts: 121, rfis: 32, rejects: 6, clients: 109, cv: false },
+    { week: "Aug 10", ruleId: "146585", ruleName: "NewBene suspicious login - large amt review", alerts: 116, rfis: 66, rejects: 39, clients: 83, cv: false },
+    { week: "Aug 10", ruleId: "55", ruleName: "Beneficiary name in blacklist", alerts: 101, rfis: 10, rejects: 11, clients: 63, cv: false },
+    { week: "Aug 10", ruleId: "141052", ruleName: "US/EMEA high risk payment", alerts: 88, rfis: 24, rejects: 7, clients: 31, cv: false },
+    { week: "Aug 10", ruleId: "119", ruleName: "Enhanced monitoring - Payout higher than expected (new)", alerts: 88, rfis: 35, rejects: 12, clients: 80, cv: false },
+    { week: "Aug 10", ruleId: "147", ruleName: "Prev txn same counterparty rejected", alerts: 70, rfis: 21, rejects: 51, clients: 40, cv: false },
+    { week: "Aug 10", ruleId: "141941", ruleName: "US/EMEA high risk deposit", alerts: 70, rfis: 41, rejects: 23, clients: 44, cv: false },
+    { week: "Aug 10", ruleId: "159", ruleName: "Repeated payouts to same 3rd party individual", alerts: 58, rfis: 7, rejects: 7, clients: 11, cv: false },
+    { week: "Aug 10", ruleId: "145", ruleName: "Individual/Unknown remitter ratio 24H flag", alerts: 53, rfis: 15, rejects: 6, clients: 9, cv: false },
+    { week: "Aug 17", ruleId: "114", ruleName: "Beneficiary name mismatch", alerts: 747, rfis: 439, rejects: 246, clients: 370, cv: false },
+    { week: "Aug 17", ruleId: "137520", ruleName: "Payer name mismatch (Stake deposit)", alerts: 634, rfis: 203, rejects: 138, clients: 578, cv: false },
+    { week: "Aug 17", ruleId: "112", ruleName: "Payout higher than expected max (established)", alerts: 422, rfis: 115, rejects: 37, clients: 361, cv: false },
+    { week: "Aug 17", ruleId: "25479", ruleName: "3rd party deposit, online client without valid URL", alerts: 306, rfis: 306, rejects: 0, clients: 223, cv: true },
+    { week: "Aug 17", ruleId: "136", ruleName: "Client on watchlist - REVIEW", alerts: 267, rfis: 29, rejects: 34, clients: 123, cv: false },
+    { week: "Aug 17", ruleId: "133", ruleName: "Rapid movement of funds", alerts: 255, rfis: 83, rejects: 31, clients: 240, cv: false },
+    { week: "Aug 17", ruleId: "154", ruleName: "Repeated deposits from same remitter", alerts: 252, rfis: 90, rejects: 27, clients: 132, cv: false },
+    { week: "Aug 17", ruleId: "146", ruleName: "Prev txn same counterparty cancelled after RFI", alerts: 210, rfis: 169, rejects: 122, clients: 119, cv: false },
+    { week: "Aug 17", ruleId: "118", ruleName: "Enhanced monitoring - 3rd party deposit value higher than expected (new)", alerts: 201, rfis: 124, rejects: 54, clients: 175, cv: false },
+    { week: "Aug 17", ruleId: "113", ruleName: "High value 3rd party deposit from individual/unknown", alerts: 197, rfis: 77, rejects: 8, clients: 173, cv: false },
+    { week: "Aug 17", ruleId: "110", ruleName: "3rd party deposit value higher than expected (established)", alerts: 154, rfis: 60, rejects: 16, clients: 143, cv: false },
+    { week: "Aug 17", ruleId: "109", ruleName: "3rd party deposit value higher than expected (new)", alerts: 153, rfis: 78, rejects: 11, clients: 137, cv: false },
+    { week: "Aug 17", ruleId: "49", ruleName: "Very High Risk Country", alerts: 146, rfis: 29, rejects: 9, clients: 43, cv: false },
+    { week: "Aug 17", ruleId: "142", ruleName: "First 5 deposits from individual remitters", alerts: 139, rfis: 90, rejects: 35, clients: 125, cv: false },
+    { week: "Aug 17", ruleId: "111", ruleName: "Payout higher than expected max (new client)", alerts: 136, rfis: 33, rejects: 2, clients: 116, cv: false },
+    { week: "Aug 17", ruleId: "138", ruleName: "Round amount deposits from individuals", alerts: 127, rfis: 68, rejects: 29, clients: 98, cv: false },
+    { week: "Aug 17", ruleId: "146585", ruleName: "NewBene suspicious login - large amt review", alerts: 112, rfis: 65, rejects: 36, clients: 96, cv: false },
+    { week: "Aug 17", ruleId: "55", ruleName: "Beneficiary name in blacklist", alerts: 89, rfis: 5, rejects: 11, clients: 56, cv: false },
+    { week: "Aug 17", ruleId: "119", ruleName: "Enhanced monitoring - Payout higher than expected (new)", alerts: 85, rfis: 34, rejects: 13, clients: 74, cv: false },
+    { week: "Aug 17", ruleId: "147", ruleName: "Prev txn same counterparty rejected", alerts: 61, rfis: 23, rejects: 27, clients: 41, cv: false },
+    { week: "Aug 17", ruleId: "141052", ruleName: "US/EMEA high risk payment", alerts: 53, rfis: 28, rejects: 12, clients: 24, cv: false },
+    { week: "Aug 17", ruleId: "141941", ruleName: "US/EMEA high risk deposit", alerts: 46, rfis: 25, rejects: 20, clients: 31, cv: false },
+    { week: "Aug 17", ruleId: "145", ruleName: "Individual/Unknown remitter ratio 24H flag", alerts: 45, rfis: 21, rejects: 6, clients: 13, cv: false },
+    { week: "Aug 17", ruleId: "159", ruleName: "Repeated payouts to same 3rd party individual", alerts: 30, rfis: 0, rejects: 1, clients: 5, cv: false },
+    { week: "Aug 24", ruleId: "137520", ruleName: "Payer name mismatch (Stake deposit)", alerts: 769, rfis: 160, rejects: 132, clients: 722, cv: false },
+    { week: "Aug 24", ruleId: "114", ruleName: "Beneficiary name mismatch", alerts: 648, rfis: 326, rejects: 166, clients: 367, cv: false },
+    { week: "Aug 24", ruleId: "112", ruleName: "Payout higher than expected max (established)", alerts: 481, rfis: 152, rejects: 56, clients: 403, cv: false },
+    { week: "Aug 24", ruleId: "136", ruleName: "Client on watchlist - REVIEW", alerts: 400, rfis: 56, rejects: 64, clients: 148, cv: false },
+    { week: "Aug 24", ruleId: "133", ruleName: "Rapid movement of funds", alerts: 324, rfis: 101, rejects: 45, clients: 282, cv: false },
+    { week: "Aug 24", ruleId: "49", ruleName: "Very High Risk Country", alerts: 291, rfis: 60, rejects: 11, clients: 44, cv: false },
+    { week: "Aug 24", ruleId: "25479", ruleName: "3rd party deposit, online client without valid URL", alerts: 291, rfis: 291, rejects: 0, clients: 217, cv: true },
+    { week: "Aug 24", ruleId: "154", ruleName: "Repeated deposits from same remitter", alerts: 286, rfis: 90, rejects: 19, clients: 144, cv: false },
+    { week: "Aug 24", ruleId: "118", ruleName: "Enhanced monitoring - 3rd party deposit value higher than expected (new)", alerts: 233, rfis: 127, rejects: 41, clients: 197, cv: false },
+    { week: "Aug 24", ruleId: "146", ruleName: "Prev txn same counterparty cancelled after RFI", alerts: 192, rfis: 151, rejects: 117, clients: 122, cv: false },
+    { week: "Aug 24", ruleId: "113", ruleName: "High value 3rd party deposit from individual/unknown", alerts: 188, rfis: 84, rejects: 19, clients: 168, cv: false },
+    { week: "Aug 24", ruleId: "146585", ruleName: "NewBene suspicious login - large amt review", alerts: 177, rfis: 90, rejects: 44, clients: 121, cv: false },
+    { week: "Aug 24", ruleId: "110", ruleName: "3rd party deposit value higher than expected (established)", alerts: 168, rfis: 71, rejects: 16, clients: 158, cv: false },
+    { week: "Aug 24", ruleId: "109", ruleName: "3rd party deposit value higher than expected (new)", alerts: 165, rfis: 83, rejects: 15, clients: 149, cv: false },
+    { week: "Aug 24", ruleId: "142", ruleName: "First 5 deposits from individual remitters", alerts: 153, rfis: 108, rejects: 52, clients: 131, cv: false },
+    { week: "Aug 24", ruleId: "111", ruleName: "Payout higher than expected max (new client)", alerts: 130, rfis: 34, rejects: 9, clients: 104, cv: false },
+    { week: "Aug 24", ruleId: "138", ruleName: "Round amount deposits from individuals", alerts: 119, rfis: 60, rejects: 29, clients: 84, cv: false },
+    { week: "Aug 24", ruleId: "119", ruleName: "Enhanced monitoring - Payout higher than expected (new)", alerts: 110, rfis: 37, rejects: 13, clients: 93, cv: false },
+    { week: "Aug 24", ruleId: "55", ruleName: "Beneficiary name in blacklist", alerts: 97, rfis: 6, rejects: 22, clients: 72, cv: false },
+    { week: "Aug 24", ruleId: "147", ruleName: "Prev txn same counterparty rejected", alerts: 73, rfis: 24, rejects: 41, clients: 51, cv: false },
+    { week: "Aug 24", ruleId: "145", ruleName: "Individual/Unknown remitter ratio 24H flag", alerts: 59, rfis: 27, rejects: 23, clients: 22, cv: false },
+    { week: "Aug 24", ruleId: "141941", ruleName: "US/EMEA high risk deposit", alerts: 57, rfis: 25, rejects: 8, clients: 42, cv: false },
+    { week: "Aug 24", ruleId: "141052", ruleName: "US/EMEA high risk payment", alerts: 41, rfis: 13, rejects: 1, clients: 18, cv: false },
+    { week: "Aug 24", ruleId: "159", ruleName: "Repeated payouts to same 3rd party individual", alerts: 32, rfis: 9, rejects: 13, clients: 10, cv: false },
+    { week: "Aug 31", ruleId: "114", ruleName: "Beneficiary name mismatch", alerts: 634, rfis: 288, rejects: 135, clients: 389, cv: false },
+    { week: "Aug 31", ruleId: "137520", ruleName: "Payer name mismatch (Stake deposit)", alerts: 589, rfis: 170, rejects: 129, clients: 539, cv: false },
+    { week: "Aug 31", ruleId: "112", ruleName: "Payout higher than expected max (established)", alerts: 425, rfis: 118, rejects: 41, clients: 374, cv: false },
+    { week: "Aug 31", ruleId: "133", ruleName: "Rapid movement of funds", alerts: 355, rfis: 114, rejects: 49, clients: 324, cv: false },
+    { week: "Aug 31", ruleId: "136", ruleName: "Client on watchlist - REVIEW", alerts: 327, rfis: 51, rejects: 28, clients: 127, cv: false },
+    { week: "Aug 31", ruleId: "25479", ruleName: "3rd party deposit, online client without valid URL", alerts: 319, rfis: 319, rejects: 0, clients: 230, cv: true },
+    { week: "Aug 31", ruleId: "49", ruleName: "Very High Risk Country", alerts: 288, rfis: 51, rejects: 10, clients: 56, cv: false },
+    { week: "Aug 31", ruleId: "154", ruleName: "Repeated deposits from same remitter", alerts: 260, rfis: 61, rejects: 17, clients: 141, cv: false },
+    { week: "Aug 31", ruleId: "118", ruleName: "Enhanced monitoring - 3rd party deposit value higher than expected (new)", alerts: 204, rfis: 111, rejects: 29, clients: 184, cv: false },
+    { week: "Aug 31", ruleId: "113", ruleName: "High value 3rd party deposit from individual/unknown", alerts: 202, rfis: 99, rejects: 14, clients: 183, cv: false },
+    { week: "Aug 31", ruleId: "146", ruleName: "Prev txn same counterparty cancelled after RFI", alerts: 199, rfis: 137, rejects: 112, clients: 135, cv: false },
+    { week: "Aug 31", ruleId: "146585", ruleName: "NewBene suspicious login - large amt review", alerts: 170, rfis: 86, rejects: 49, clients: 125, cv: false },
+    { week: "Aug 31", ruleId: "109", ruleName: "3rd party deposit value higher than expected (new)", alerts: 163, rfis: 80, rejects: 8, clients: 145, cv: false },
+    { week: "Aug 31", ruleId: "142", ruleName: "First 5 deposits from individual remitters", alerts: 163, rfis: 99, rejects: 43, clients: 130, cv: false },
+    { week: "Aug 31", ruleId: "110", ruleName: "3rd party deposit value higher than expected (established)", alerts: 155, rfis: 67, rejects: 7, clients: 148, cv: false },
+    { week: "Aug 31", ruleId: "138", ruleName: "Round amount deposits from individuals", alerts: 129, rfis: 73, rejects: 29, clients: 95, cv: false },
+    { week: "Aug 31", ruleId: "111", ruleName: "Payout higher than expected max (new client)", alerts: 127, rfis: 32, rejects: 6, clients: 97, cv: false },
+    { week: "Aug 31", ruleId: "119", ruleName: "Enhanced monitoring - Payout higher than expected (new)", alerts: 100, rfis: 35, rejects: 18, clients: 85, cv: false },
+    { week: "Aug 31", ruleId: "145", ruleName: "Individual/Unknown remitter ratio 24H flag", alerts: 96, rfis: 34, rejects: 2, clients: 17, cv: false },
+    { week: "Aug 31", ruleId: "55", ruleName: "Beneficiary name in blacklist", alerts: 83, rfis: 7, rejects: 25, clients: 61, cv: false },
+    { week: "Aug 31", ruleId: "147", ruleName: "Prev txn same counterparty rejected", alerts: 81, rfis: 20, rejects: 46, clients: 50, cv: false },
+    { week: "Aug 31", ruleId: "141941", ruleName: "US/EMEA high risk deposit", alerts: 64, rfis: 30, rejects: 12, clients: 43, cv: false },
+    { week: "Aug 31", ruleId: "159", ruleName: "Repeated payouts to same 3rd party individual", alerts: 55, rfis: 7, rejects: 6, clients: 12, cv: false },
+    { week: "Aug 31", ruleId: "141052", ruleName: "US/EMEA high risk payment", alerts: 43, rfis: 16, rejects: 3, clients: 26, cv: false },
+    { week: "Sep 7", ruleId: "114", ruleName: "Beneficiary name mismatch", alerts: 666, rfis: 321, rejects: 102, clients: 394, cv: false },
+    { week: "Sep 7", ruleId: "137520", ruleName: "Payer name mismatch (Stake deposit)", alerts: 500, rfis: 134, rejects: 48, clients: 470, cv: false },
+    { week: "Sep 7", ruleId: "112", ruleName: "Payout higher than expected max (established)", alerts: 397, rfis: 117, rejects: 23, clients: 355, cv: false },
+    { week: "Sep 7", ruleId: "25479", ruleName: "3rd party deposit, online client without valid URL", alerts: 396, rfis: 396, rejects: 0, clients: 235, cv: true },
+    { week: "Sep 7", ruleId: "133", ruleName: "Rapid movement of funds", alerts: 355, rfis: 109, rejects: 23, clients: 326, cv: false },
+    { week: "Sep 7", ruleId: "136", ruleName: "Client on watchlist - REVIEW", alerts: 346, rfis: 44, rejects: 26, clients: 171, cv: false },
+    { week: "Sep 7", ruleId: "154", ruleName: "Repeated deposits from same remitter", alerts: 287, rfis: 86, rejects: 13, clients: 146, cv: false },
+    { week: "Sep 7", ruleId: "118", ruleName: "Enhanced monitoring - 3rd party deposit value higher than expected (new)", alerts: 207, rfis: 119, rejects: 39, clients: 183, cv: false },
+    { week: "Sep 7", ruleId: "49", ruleName: "Very High Risk Country", alerts: 200, rfis: 54, rejects: 7, clients: 47, cv: false },
+    { week: "Sep 7", ruleId: "146", ruleName: "Prev txn same counterparty cancelled after RFI", alerts: 189, rfis: 150, rejects: 68, clients: 107, cv: false },
+    { week: "Sep 7", ruleId: "113", ruleName: "High value 3rd party deposit from individual/unknown", alerts: 185, rfis: 87, rejects: 19, clients: 171, cv: false },
+    { week: "Sep 7", ruleId: "146585", ruleName: "NewBene suspicious login - large amt review", alerts: 179, rfis: 105, rejects: 34, clients: 149, cv: false },
+    { week: "Sep 7", ruleId: "109", ruleName: "3rd party deposit value higher than expected (new)", alerts: 155, rfis: 70, rejects: 13, clients: 140, cv: false },
+    { week: "Sep 7", ruleId: "110", ruleName: "3rd party deposit value higher than expected (established)", alerts: 154, rfis: 77, rejects: 8, clients: 149, cv: false },
+    { week: "Sep 7", ruleId: "142", ruleName: "First 5 deposits from individual remitters", alerts: 141, rfis: 81, rejects: 27, clients: 126, cv: false },
+    { week: "Sep 7", ruleId: "111", ruleName: "Payout higher than expected max (new client)", alerts: 128, rfis: 38, rejects: 4, clients: 114, cv: false },
+    { week: "Sep 7", ruleId: "138", ruleName: "Round amount deposits from individuals", alerts: 121, rfis: 69, rejects: 27, clients: 95, cv: false },
+    { week: "Sep 7", ruleId: "119", ruleName: "Enhanced monitoring - Payout higher than expected (new)", alerts: 97, rfis: 40, rejects: 15, clients: 81, cv: false },
+    { week: "Sep 7", ruleId: "145", ruleName: "Individual/Unknown remitter ratio 24H flag", alerts: 86, rfis: 55, rejects: 7, clients: 13, cv: false },
+    { week: "Sep 7", ruleId: "147", ruleName: "Prev txn same counterparty rejected", alerts: 74, rfis: 29, rejects: 24, clients: 50, cv: false },
+    { week: "Sep 7", ruleId: "55", ruleName: "Beneficiary name in blacklist", alerts: 68, rfis: 8, rejects: 17, clients: 56, cv: false },
+    { week: "Sep 7", ruleId: "141941", ruleName: "US/EMEA high risk deposit", alerts: 45, rfis: 14, rejects: 5, clients: 28, cv: false },
+    { week: "Sep 7", ruleId: "141052", ruleName: "US/EMEA high risk payment", alerts: 37, rfis: 9, rejects: 4, clients: 25, cv: false },
+    { week: "Sep 7", ruleId: "159", ruleName: "Repeated payouts to same 3rd party individual", alerts: 9, rfis: 3, rejects: 2, clients: 4, cv: false },
+    { week: "Sep 14", ruleId: "137520", ruleName: "Payer name mismatch (Stake deposit)", alerts: 647, rfis: 144, rejects: 40, clients: 588, cv: false },
+    { week: "Sep 14", ruleId: "114", ruleName: "Beneficiary name mismatch", alerts: 642, rfis: 327, rejects: 72, clients: 408, cv: false },
+    { week: "Sep 14", ruleId: "25479", ruleName: "3rd party deposit, online client without valid URL", alerts: 481, rfis: 481, rejects: 0, clients: 240, cv: true },
+    { week: "Sep 14", ruleId: "112", ruleName: "Payout higher than expected max (established)", alerts: 382, rfis: 115, rejects: 14, clients: 342, cv: false },
+    { week: "Sep 14", ruleId: "133", ruleName: "Rapid movement of funds", alerts: 325, rfis: 86, rejects: 10, clients: 298, cv: false },
+    { week: "Sep 14", ruleId: "136", ruleName: "Client on watchlist - REVIEW", alerts: 320, rfis: 56, rejects: 45, clients: 139, cv: false },
+    { week: "Sep 14", ruleId: "142", ruleName: "First 5 deposits from individual remitters", alerts: 312, rfis: 266, rejects: 199, clients: 116, cv: false },
+    { week: "Sep 14", ruleId: "154", ruleName: "Repeated deposits from same remitter", alerts: 271, rfis: 88, rejects: 10, clients: 153, cv: false },
+    { week: "Sep 14", ruleId: "118", ruleName: "Enhanced monitoring - 3rd party deposit value higher than expected (new)", alerts: 224, rfis: 111, rejects: 19, clients: 199, cv: false },
+    { week: "Sep 14", ruleId: "113", ruleName: "High value 3rd party deposit from individual/unknown", alerts: 198, rfis: 88, rejects: 8, clients: 175, cv: false },
+    { week: "Sep 14", ruleId: "146", ruleName: "Prev txn same counterparty cancelled after RFI", alerts: 182, rfis: 141, rejects: 43, clients: 129, cv: false },
+    { week: "Sep 14", ruleId: "146585", ruleName: "NewBene suspicious login - large amt review", alerts: 175, rfis: 113, rejects: 29, clients: 146, cv: false },
+    { week: "Sep 14", ruleId: "49", ruleName: "Very High Risk Country", alerts: 169, rfis: 37, rejects: 1, clients: 36, cv: false },
+    { week: "Sep 14", ruleId: "109", ruleName: "3rd party deposit value higher than expected (new)", alerts: 169, rfis: 78, rejects: 4, clients: 156, cv: false },
+    { week: "Sep 14", ruleId: "110", ruleName: "3rd party deposit value higher than expected (established)", alerts: 160, rfis: 61, rejects: 8, clients: 155, cv: false },
+    { week: "Sep 14", ruleId: "138", ruleName: "Round amount deposits from individuals", alerts: 151, rfis: 77, rejects: 14, clients: 97, cv: false },
+    { week: "Sep 14", ruleId: "111", ruleName: "Payout higher than expected max (new client)", alerts: 125, rfis: 31, rejects: 1, clients: 115, cv: false },
+    { week: "Sep 14", ruleId: "145", ruleName: "Individual/Unknown remitter ratio 24H flag", alerts: 115, rfis: 90, rejects: 67, clients: 10, cv: false },
+    { week: "Sep 14", ruleId: "119", ruleName: "Enhanced monitoring - Payout higher than expected (new)", alerts: 96, rfis: 32, rejects: 5, clients: 84, cv: false },
+    { week: "Sep 14", ruleId: "55", ruleName: "Beneficiary name in blacklist", alerts: 85, rfis: 7, rejects: 13, clients: 64, cv: false },
+    { week: "Sep 14", ruleId: "147", ruleName: "Prev txn same counterparty rejected", alerts: 75, rfis: 16, rejects: 35, clients: 42, cv: false },
+    { week: "Sep 14", ruleId: "141052", ruleName: "US/EMEA high risk payment", alerts: 65, rfis: 17, rejects: 4, clients: 21, cv: false },
+    { week: "Sep 14", ruleId: "159", ruleName: "Repeated payouts to same 3rd party individual", alerts: 39, rfis: 5, rejects: 2, clients: 8, cv: false },
+    { week: "Sep 14", ruleId: "141941", ruleName: "US/EMEA high risk deposit", alerts: 31, rfis: 14, rejects: 5, clients: 25, cv: false }
+  ],
+
+  takeaways: [
+    "Overall adj. alert rate at 0.61% (w/e Sep 13), within the 0.70% EOY target. T2-T4 SME remains above the 0.80% target at 1.04%, consistently in the 0.78–1.11% range YTD.",
+    "Fraud rate reduced ~60% from Q1 (avg 0.014%) to Jun–Jul (avg 0.005%). T2-T4 SME fraud rate down ~66%, from avg 0.034% in Q1 to avg 0.012% since June.",
+    "Risk concentration firmly in T2-T4 SME: 6x the alert rate of Enterprise (1.25% vs 0.20% over Jul–Sep), and >90% of reported fraud $ in most weeks.",
+    "Enterprise/T1 stable at 0.17–0.24% alert rate with near-zero fraud rate (<0.01% most weeks). Rules 111/112 demised — Enterprise/T1 1m+ band alert rate brought down from 7% to 2%.",
+    "Top alert drivers (Jul–Sep): payer name mismatch (13% of alerts), beneficiary name mismatch (10%), and payout higher than expected (7%). Name-match rules alone generate 23% of all alerts with a 20.8% rejection rate."
+  ],
+
+  nextInitiatives: [
+    "Name-match rules (114/137520): 23% of all alerts (14,686), 20.8% rejection rate post Ops review. Enhancing name-match logic to reduce false alerts; working with GTPN to bring name-match check on transfer upfront to reduce risk rejections.",
+    "URL validation rule (25479): 3,085 alerts (5%), 100% RFI rate. Root cause: URL validation moved from KYC to first transfer to increase KYC STP rate. Biggest false-positive source is incorrect online business tagging on KYC side; working with DS team to improve.",
+    "Rule 49 (very high risk country): 2,881 alerts (5%), reject rate at 4.4%. Needs optimisation by segment. Exploring move to daily post-monitoring (only AML rule left in RT, limited value as real-time control).",
+    "AI discounting layer on RT to reduce overall friction and false positives.",
+    "DD recall queue in configuration, release targeted before 23 Sept."
+  ]
+};
+
+// ============================================================
+// Filter state
+// ============================================================
+var filterWeeks = 0; // 0 = all
+
+function setFilter(n) {
+  filterWeeks = n;
+  document.querySelectorAll(".filter-btn").forEach(function(b) {
+    b.classList.toggle("active", parseInt(b.dataset.weeks) === n);
+  });
+  render();
+}
+
+function sliceData(arr, n) {
+  if (n === 0 || n >= arr.length) return arr;
+  return arr.slice(arr.length - n);
+}
+
+// ============================================================
+// Helpers
+// ============================================================
+var _mn = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function weekEnd(label) {
+  var p = label.split(" ");
+  var d = new Date(2026, _mn.indexOf(p[0]), parseInt(p[1]) + 6);
+  return _mn[d.getMonth()] + " " + d.getDate();
+}
+function fmtPct(v) { return v == null ? "—" : (v < 1 ? v.toFixed(3) + "%" : v.toFixed(2) + "%"); }
+function fmtNum(v) { return v == null ? "—" : v.toLocaleString("en-US"); }
+function fmtMoney(v) { return "$" + v.toFixed(1) + "M"; }
+
+function pctDelta(curr, prev) {
+  if (curr == null || prev == null) return { text: "—", cls: "" };
+  var d = curr - prev;
+  var sign = d > 0.0001 ? "+" : d < -0.0001 ? "−" : "";
+  var abs = Math.abs(d) < 0.01 ? Math.abs(d).toFixed(4) : Math.abs(d) < 0.1 ? Math.abs(d).toFixed(3) : Math.abs(d).toFixed(2);
+  var cls = d > 0.0005 ? "bad" : d < -0.0005 ? "good" : "";
+  return { text: sign + abs + "%", cls: cls };
+}
+
+function countDelta(curr, prev) {
+  if (curr == null || prev == null) return { text: "—", cls: "" };
+  var d = curr - prev;
+  var sign = d > 0 ? "+" : d < 0 ? "−" : "";
+  var abs = Math.abs(d).toLocaleString("en-US");
+  var cls = d > 0 ? "bad" : d < 0 ? "good" : "";
+  return { text: sign + abs, cls: cls };
+}
+
+// ============================================================
+// SVG Line Chart
+// ============================================================
+var NS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs) {
+  var e = document.createElementNS(NS, tag);
+  if (attrs) Object.keys(attrs).forEach(function(k) { e.setAttribute(k, attrs[k]); });
+  return e;
+}
+
+function buildLineChart(containerId, cfg) {
+  var series = cfg.series, xLabels = cfg.xLabels, yMax = cfg.yMax, yStep = cfg.yStep, targets = cfg.targets;
+  var yFmt = cfg.yFmt || function(v) { return v === 0 ? "0" : v.toFixed(2) + "%"; };
+  var valueFmt = cfg.valueFmt || fmtPct;
+  var W = cfg.width || 700, H = cfg.height || 280;
+  var P = { l: cfg.padLeft || 52, t: 20, r: 60, b: 40 };
+  var pw = W - P.l - P.r, ph = H - P.t - P.b;
+  var n = xLabels.length;
+
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = "";
+
+  var svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, class: "chart", role: "img" });
+
+  var nTicks = Math.round(yMax / yStep) + 1;
+  for (var i = 0; i < nTicks; i++) {
+    var v = +(i * yStep).toFixed(3);
+    var y = P.t + ph - (v / yMax) * ph;
+    svg.appendChild(svgEl("line", { x1: P.l, y1: y, x2: W - P.r, y2: y, stroke: "var(--gridline)", "stroke-width": 1 }));
+    var txt = svgEl("text", { x: P.l - 8, y: y + 3.5, fill: "var(--text-muted)", "font-size": "10", "text-anchor": "end", "font-family": "system-ui, sans-serif" });
+    txt.textContent = yFmt(v);
+    svg.appendChild(txt);
+  }
+  svg.appendChild(svgEl("line", { x1: P.l, y1: P.t + ph, x2: W - P.r, y2: P.t + ph, stroke: "var(--baseline)", "stroke-width": 1 }));
+
+  if (targets) {
+    targets.forEach(function(t) {
+      var ty = P.t + ph - (t.value / yMax) * ph;
+      svg.appendChild(svgEl("line", { x1: P.l, y1: ty, x2: W - P.r, y2: ty, stroke: "var(--target-line)", "stroke-width": 1, "stroke-dasharray": "6 4" }));
+      var lbl = svgEl("text", { x: W - P.r + 4, y: ty + 3.5, fill: "var(--text-muted)", "font-size": "9", "text-anchor": "start", "font-family": "system-ui, sans-serif" });
+      lbl.textContent = t.label;
+      svg.appendChild(lbl);
+    });
+  }
+
+  xLabels.forEach(function(label, idx) {
+    var x = n > 1 ? P.l + (idx / (n - 1)) * pw : P.l + pw / 2;
+    var xt = svgEl("text", { x: x, y: P.t + ph + 20, fill: "var(--text-muted)", "font-size": "10", "text-anchor": "middle", "font-family": "system-ui, sans-serif" });
+    xt.textContent = label;
+    svg.appendChild(xt);
+  });
+
+  series.forEach(function(s) {
+    var pts = [];
+    s.values.forEach(function(val, idx) {
+      if (val == null) return;
+      pts.push({ x: n > 1 ? P.l + (idx / (n - 1)) * pw : P.l + pw / 2, y: P.t + ph - (val / yMax) * ph, v: val, i: idx });
+    });
+    if (pts.length < 2) return;
+
+    var d = pts.map(function(p, j) { return (j === 0 ? "M" : "L") + p.x.toFixed(1) + "," + p.y.toFixed(1); }).join("");
+    svg.appendChild(svgEl("path", { d: d, fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" }));
+
+    pts.forEach(function(p) { svg.appendChild(svgEl("circle", { cx: p.x, cy: p.y, r: 6, fill: "var(--surface)" })); });
+    pts.forEach(function(p) {
+      var dot = svgEl("circle", { cx: p.x, cy: p.y, r: 4, fill: s.color, class: "chart-dot" });
+      dot.dataset.label = s.label; dot.dataset.week = xLabels[p.i]; dot.dataset.value = valueFmt(p.v);
+      svg.appendChild(dot);
+    });
+    pts.forEach(function(p) {
+      var hit = svgEl("circle", { cx: p.x, cy: p.y, r: 12, fill: "transparent", class: "chart-dot", style: "cursor:default" });
+      hit.dataset.label = s.label; hit.dataset.week = xLabels[p.i]; hit.dataset.value = valueFmt(p.v);
+      svg.appendChild(hit);
+    });
+
+    var last = pts[pts.length - 1];
+    var elbl = svgEl("text", { x: last.x + 8, y: last.y + 4, fill: "var(--text-secondary)", "font-size": "11", "font-weight": "500", "text-anchor": "start", "font-family": "system-ui, sans-serif" });
+    elbl.textContent = valueFmt(last.v);
+    svg.appendChild(elbl);
+  });
+
+  container.appendChild(svg);
+}
+
+// ============================================================
+// SVG Stacked Bar Chart
+// ============================================================
+function roundedTopRect(x, y, w, h, r) {
+  r = Math.min(r, h / 2, w / 2);
+  return "M" + x + "," + (y + h) + "V" + (y + r) + "Q" + x + "," + y + " " + (x + r) + "," + y + "H" + (x + w - r) + "Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r) + "V" + (y + h) + "Z";
+}
+
+function buildStackedBarChart(containerId, cfg) {
+  var data = cfg.data, yMax = cfg.yMax, yStep = cfg.yStep;
+  var W = 500, H = 220;
+  var P = { l: 48, t: 16, r: 12, b: 36 };
+  var pw = W - P.l - P.r, ph = H - P.t - P.b;
+  var n = data.length;
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = "";
+  var svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, class: "chart", role: "img" });
+  var nTicks = Math.round(yMax / yStep) + 1;
+  for (var i = 0; i < nTicks; i++) {
+    var v = i * yStep;
+    var y = P.t + ph - (v / yMax) * ph;
+    svg.appendChild(svgEl("line", { x1: P.l, y1: y, x2: W - P.r, y2: y, stroke: "var(--gridline)", "stroke-width": 1 }));
+    var txt = svgEl("text", { x: P.l - 8, y: y + 3.5, fill: "var(--text-muted)", "font-size": "10", "text-anchor": "end", "font-family": "system-ui, sans-serif" });
+    txt.textContent = v.toLocaleString();
+    svg.appendChild(txt);
+  }
+  svg.appendChild(svgEl("line", { x1: P.l, y1: P.t + ph, x2: W - P.r, y2: P.t + ph, stroke: "var(--baseline)", "stroke-width": 1 }));
+  var slotW = pw / n;
+  var barW = Math.min(24, slotW * 0.6);
+  var GAP = 2;
+  data.forEach(function(d, idx) {
+    var cx = P.l + (idx + 0.5) * slotW;
+    var bx = cx - barW / 2;
+    var baseY = P.t + ph;
+    if (d.opsRfi != null) {
+      var opsH = (d.opsRfi / yMax) * ph;
+      var cvH = d.cv != null ? (d.cv / yMax) * ph : 0;
+      var hasCv = cvH > 0.5;
+      if (opsH > 0.5) {
+        var el;
+        if (hasCv) {
+          el = svgEl("rect", { x: bx, y: baseY - opsH, width: barW, height: opsH, fill: "var(--series-1)" });
+        } else {
+          el = svgEl("path", { d: roundedTopRect(bx, baseY - opsH, barW, opsH, 4), fill: "var(--series-1)" });
+        }
+        el.classList.add("chart-dot"); el.dataset.label = "Ops RFI"; el.dataset.week = d.label; el.dataset.value = d.opsRfi.toLocaleString();
+        svg.appendChild(el);
+      }
+      if (hasCv) {
+        var cvY = baseY - opsH - GAP - cvH;
+        var cp = svgEl("path", { d: roundedTopRect(bx, cvY, barW, cvH, 4), fill: "var(--series-2)" });
+        cp.classList.add("chart-dot"); cp.dataset.label = "CV"; cp.dataset.week = d.label; cp.dataset.value = d.cv.toLocaleString();
+        svg.appendChild(cp);
+      }
+    }
+    var xt = svgEl("text", { x: cx, y: P.t + ph + 16, fill: "var(--text-muted)", "font-size": "9", "text-anchor": "middle", "font-family": "system-ui, sans-serif" });
+    xt.textContent = d.label;
+    svg.appendChild(xt);
+  });
+  container.appendChild(svg);
+}
+
+// ============================================================
+// Tooltip
+// ============================================================
+var tip = document.getElementById("tooltip");
+document.addEventListener("pointerover", function(e) {
+  if (!e.target.classList.contains("chart-dot") || !e.target.dataset.label) return;
+  var t = e.target;
+  tip.innerHTML = '<div class="tooltip-label">' + t.dataset.label + " · " + t.dataset.week + '</div><div class="tooltip-value">' + t.dataset.value + "</div>";
+  tip.classList.add("visible");
+});
+document.addEventListener("pointermove", function(e) {
+  if (!tip.classList.contains("visible")) return;
+  var x = e.clientX + 12, y = e.clientY - tip.offsetHeight - 12;
+  if (x + tip.offsetWidth > window.innerWidth - 12) x = e.clientX - tip.offsetWidth - 12;
+  if (y < 12) y = e.clientY + 12;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+});
+document.addEventListener("pointerout", function(e) {
+  if (e.target.classList.contains("chart-dot")) tip.classList.remove("visible");
+});
+
+// ============================================================
+// Render
+// ============================================================
+function render() {
+  var app = document.getElementById("app");
+  var waFull = sliceData(DATA.weeklyAlert, filterWeeks);
+  var wa = waFull.slice(0, -1);
+  var wr = sliceData(DATA.weeklyRfi, filterWeeks).slice(0, -1);
+  var ws = sliceData(DATA.weeklySegment, filterWeeks).slice(0, -1);
+  var wf = sliceData(DATA.weeklyFraud, filterWeeks).slice(0, -1);
+
+  var latest = wa[wa.length - 1];
+  var prev = wa.length > 1 ? wa[wa.length - 2] : null;
+  var latestRfi = wr[wr.length - 1];
+  var latestFraud = wf[wf.length - 1];
+
+  var w1 = latest;
+  var w2 = wa.length >= 2 ? wa[wa.length - 2] : null;
+  var w1Week = w1.week;
+  var fraudLag = latestFraud;
+  var fraudLagPrev = wf.length >= 2 ? wf[wf.length - 2] : null;
+  var fraudLagWeek = fraudLag.week;
+
+  var dOverall = pctDelta(w1.overall, w2 ? w2.overall : null);
+  var dSme = pctDelta(w1.sme, w2 ? w2.sme : null);
+  var dEnt = pctDelta(w1.enterprise, w2 ? w2.enterprise : null);
+  var dRfi = countDelta(latestRfi.rfis, wr.length > 1 ? wr[wr.length - 2].rfis : null);
+
+  var rangeText = weekEnd(wa[0].week) + " – " + weekEnd(wa[wa.length - 1].week) + " (" + wa.length + " weeks)";
+
+  var html = "";
+
+  // Header + filter
+  html += '<h1>Real-time TM Weekly Performance Report</h1>';
+  html += '<p class="updated">Last updated: ' + DATA.lastUpdated + "</p>";
+
+  html += '<div class="filter-row">';
+  html += '<span class="filter-label">Window</span>';
+  html += '<button class="filter-btn' + (filterWeeks === 4 ? " active" : "") + '" data-weeks="4" onclick="setFilter(4)">4W</button>';
+  html += '<button class="filter-btn' + (filterWeeks === 6 ? " active" : "") + '" data-weeks="6" onclick="setFilter(6)">6W</button>';
+  html += '<button class="filter-btn' + (filterWeeks === 8 ? " active" : "") + '" data-weeks="8" onclick="setFilter(8)">8W</button>';
+  html += '<button class="filter-btn' + (filterWeeks === 0 ? " active" : "") + '" data-weeks="0" onclick="setFilter(0)">All</button>';
+  html += '<div class="filter-sep"></div>';
+  html += '<span class="filter-range">' + rangeText + "</span>";
+  html += "</div>";
+
+  // KPI dateline
+  html += '<p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:1.25rem">Metrics as of week ending ' + weekEnd(w1Week) + ' · Week-over-week delta</p>';
+
+  // Alert Rate
+  html += '<p style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:0.5rem">Adjusted Alert Rate</p>';
+  html += '<div class="kpi-row" style="grid-template-columns: repeat(3, 1fr)">';
+  html += '<div class="kpi"><div class="kpi-label">Overall</div><div class="kpi-value">' + fmtPct(w1.overall) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dOverall.cls + '">' + dOverall.text + '</span><span class="kpi-target">Target &lt;' + DATA.targets.overall.toFixed(2) + "%</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">Enterprise/T1</div><div class="kpi-value">' + fmtPct(w1.enterprise) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dEnt.cls + '">' + dEnt.text + "</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">T2-T4 SME</div><div class="kpi-value">' + fmtPct(w1.sme) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dSme.cls + '">' + dSme.text + '</span><span class="kpi-target">Target &lt;' + DATA.targets.sme.toFixed(2) + "%</span></div></div>";
+  html += "</div>";
+
+  // RFI Rate
+  var rfi1 = latestRfi;
+  var rfi2 = wr.length >= 2 ? wr[wr.length - 2] : null;
+  var wa1 = w1; var wa2 = w2;
+  var seg1 = ws[ws.length - 1];
+  var seg2 = ws.length >= 2 ? ws[ws.length - 2] : null;
+  var overallRfiRate = wa1.txns > 0 ? rfi1.rfis / wa1.txns * 100 : 0;
+  var entRfiRate = seg1.entTxns > 0 ? seg1.entRfis / seg1.entTxns * 100 : 0;
+  var smeRfiRate = seg1.smeTxns > 0 ? seg1.smeRfis / seg1.smeTxns * 100 : 0;
+  var prevOverallRfiRate = (rfi2 && wa2) ? rfi2.rfis / wa2.txns * 100 : null;
+  var prevEntRfiRate = seg2 && seg2.entTxns > 0 ? seg2.entRfis / seg2.entTxns * 100 : null;
+  var prevSmeRfiRate = seg2 && seg2.smeTxns > 0 ? seg2.smeRfis / seg2.smeTxns * 100 : null;
+  var dOverallRfi = pctDelta(overallRfiRate, prevOverallRfiRate);
+  var dEntRfi = pctDelta(entRfiRate, prevEntRfiRate);
+  var dSmeRfi = pctDelta(smeRfiRate, prevSmeRfiRate);
+
+  html += '<p style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:0.5rem;margin-top:0.25rem">RFI Rate</p>';
+  html += '<div class="kpi-row" style="grid-template-columns: repeat(3, 1fr)">';
+  html += '<div class="kpi"><div class="kpi-label">Overall</div><div class="kpi-value">' + fmtPct(overallRfiRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dOverallRfi.cls + '">' + dOverallRfi.text + "</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">Enterprise/T1</div><div class="kpi-value">' + fmtPct(entRfiRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dEntRfi.cls + '">' + dEntRfi.text + "</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">T2-T4 SME</div><div class="kpi-value">' + fmtPct(smeRfiRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + dSmeRfi.cls + '">' + dSmeRfi.text + "</span></div></div>";
+  html += "</div>";
+
+  // Fraud Rate
+  var fraudLagRate = fraudLag.fraudRate;
+  var fraudLagPrevRate = fraudLagPrev ? fraudLagPrev.fraudRate : null;
+  var frDelta = pctDelta(fraudLagRate, fraudLagPrevRate);
+  var entFraudLag = fraudLag.entFraudRate;
+  var entFraudPrev = fraudLagPrev ? fraudLagPrev.entFraudRate : null;
+  var entFrDelta = pctDelta(entFraudLag, entFraudPrev);
+  var smeFraudLag = fraudLag.smeFraudRate;
+  var smeFraudPrev = fraudLagPrev ? fraudLagPrev.smeFraudRate : null;
+  var smeFrDelta = pctDelta(smeFraudLag, smeFraudPrev);
+
+  html += '<p style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:0.5rem;margin-top:0.25rem">Fraud Rate</p>';
+  html += '<div class="kpi-row" style="grid-template-columns: repeat(3, 1fr)">';
+  html += '<div class="kpi"><div class="kpi-label">Overall</div><div class="kpi-value">' + fmtPct(fraudLagRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + frDelta.cls + '">' + frDelta.text + '</span><span class="kpi-target">EOY &lt;' + DATA.targets.fraudOverall.toFixed(2) + "%</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">Enterprise/T1</div><div class="kpi-value">' + fmtPct(entFraudLag) + '</div><div class="kpi-meta"><span class="kpi-delta ' + entFrDelta.cls + '">' + entFrDelta.text + "</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">T2-T4 SME</div><div class="kpi-value">' + fmtPct(smeFraudLag) + '</div><div class="kpi-meta"><span class="kpi-delta ' + smeFrDelta.cls + '">' + smeFrDelta.text + '</span><span class="kpi-target">EOY &lt;' + DATA.targets.fraudSme.toFixed(2) + "%</span></div></div>";
+  html += "</div>";
+
+  // Chart: weekly alert rate
+  var weeklyMax = 0;
+  wa.forEach(function(w) { weeklyMax = Math.max(weeklyMax, w.overall, w.sme || 0, w.enterprise || 0); });
+  weeklyMax = Math.max(weeklyMax, DATA.targets.sme) * 1.2;
+  var yMax1 = Math.ceil(weeklyMax * 10) / 10;
+  var yStep1 = yMax1 <= 1.0 ? 0.20 : 0.25;
+
+  html += '<div class="charts-grid"><div class="chart-card">';
+  html += '<div class="chart-title">Weekly Adjusted Alert Rate by Segment</div>';
+  html += '<div id="chart-weekly-alert"></div>';
+  html += '<div class="legend">';
+  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-1)"></div>Overall</div>';
+  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-2)"></div>T2-T4 SME</div>';
+  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-3)"></div>Enterprise/T1</div>';
+  html += '<div class="legend-item"><div class="legend-swatch dashed" style="border-color:var(--target-line)"></div>Target</div>';
+  html += "</div></div></div>";
+
+  // Weekly detail table
+  html += '<div class="section"><div class="section-title">Weekly Alert Rate and Reject Amounts</div>';
+  html += '<div class="table-wrapper"><table><thead><tr>';
+  html += "<th>Week</th><th class=\"r\">Txns</th><th class=\"r\">Adj. Alerts</th><th class=\"r\">Alert Rate</th><th class=\"r\">WoW Δ</th><th class=\"r\">Enterprise/T1</th><th class=\"r\">T2-T4 SME</th>";
+  html += "</tr></thead><tbody>";
+  for (var i = wa.length - 1; i >= 0; i--) {
+    var w = wa[i], p2 = i > 0 ? wa[i - 1] : null;
+    var dO = pctDelta(w.overall, p2 ? p2.overall : null);
+    html += "<tr><td>" + weekEnd(w.week) + "</td><td class=\"r\">" + fmtNum(w.txns) + "</td><td class=\"r\">" + fmtNum(w.alerts) + "</td><td class=\"r\">" + fmtPct(w.overall) + "</td><td class=\"r " + (dO.cls ? "delta-" + dO.cls : "") + "\">" + dO.text + "</td><td class=\"r\">" + fmtPct(w.enterprise) + "</td><td class=\"r\">" + fmtPct(w.sme) + "</td></tr>";
+  }
+  html += "</tbody></table></div></div>";
+
+  // Top alert rate drivers by rule
+  var ruleWeeks = DATA.topRulesByWeek.filter(function(r) {
+    return wa.some(function(w) { return w.week === r.week; });
+  });
+  var ruleAgg = {};
+  ruleWeeks.forEach(function(r) {
+    var key = r.ruleId;
+    if (!ruleAgg[key]) ruleAgg[key] = { ruleId: r.ruleId, ruleName: r.ruleName, alerts: 0, rfis: 0, rejects: 0, clients: 0, cv: r.cv };
+    ruleAgg[key].alerts += r.alerts;
+    ruleAgg[key].rfis += r.rfis;
+    ruleAgg[key].rejects += r.rejects;
+    ruleAgg[key].clients += r.clients;
+  });
+  var totalTxns = 0;
+  wa.forEach(function(w) { totalTxns += w.txns; });
+  var ruleRows = Object.keys(ruleAgg).map(function(k) { return ruleAgg[k]; });
+  ruleRows.sort(function(a, b) { return b.alerts - a.alerts; });
+
+  var ruleTimeRange = wa.length > 0 ? weekEnd(wa[0].week) + ' – ' + weekEnd(wa[wa.length - 1].week) : '';
+  html += '<div class="section"><div class="section-title">Top Alert Drivers by Rule (' + ruleTimeRange + ')</div>';
+  html += '<div class="table-wrapper" style="max-height:420px;overflow-y:auto"><table><thead><tr style="position:sticky;top:0;background:var(--surface);z-index:1">';
+  html += '<th>Rule ID</th><th>Rule Name</th><th class="r">Alerts</th><th class="r">Clients</th><th class="r">Alert Rate</th><th class="r">RFIs</th><th class="r">RFI Rate</th><th class="r">Reject Rate</th>';
+  html += '</tr></thead><tbody>';
+  ruleRows.forEach(function(r) {
+    var alertRate = totalTxns > 0 ? (r.alerts / totalTxns * 100).toFixed(3) : "0";
+    var rfiRate = r.alerts > 0 ? (r.rfis / r.alerts * 100).toFixed(1) : "0";
+    var rejectRate = r.cv ? "N/A" : (r.alerts > 0 ? (r.rejects / r.alerts * 100).toFixed(1) + '%' : "0%");
+    html += '<tr><td>' + r.ruleId + '</td><td>' + r.ruleName + '</td><td class="r">' + fmtNum(r.alerts) + '</td><td class="r">' + fmtNum(r.clients) + '</td><td class="r">' + alertRate + '%</td><td class="r">' + fmtNum(r.rfis) + '</td><td class="r">' + rfiRate + '%</td><td class="r">' + rejectRate + '</td></tr>';
+  });
+  html += '</tbody></table></div></div>';
+
+  // Segment breakdown: stacked bar charts + detail table
+  html += '<div class="section"><div class="section-title">Segment Detail: Enterprise/T1 vs T2-T4 SME (Ops RFI + Customer Verification)</div>';
+  html += '<p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:1rem">Ops RFI = ops reviewed cases, decided to raise RFI. CV = customer verification post-KYC pass, account activation steps postponed to transaction stage to enable KYC STP (PPTA, URL, UBO verification etc).</p>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">';
+  html += '<div class="chart-card"><div class="chart-title">Enterprise/T1</div><div id="chart-ent-rficv"></div></div>';
+  html += '<div class="chart-card"><div class="chart-title">T2-T4 SME</div><div id="chart-sme-rficv"></div></div>';
+  html += '</div>';
+  html += '<div class="legend" style="margin-bottom:1rem"><div class="legend-item"><div class="legend-swatch" style="background:var(--series-1);height:8px"></div>Ops RFI</div><div class="legend-item"><div class="legend-swatch" style="background:var(--series-2);height:8px"></div>Customer Verification</div></div>';
+  html += '<div class="table-wrapper"><table><thead><tr>';
+  html += "<th>Week</th><th class=\"r\">Enterprise/T1 Alerts</th><th class=\"r\">Enterprise/T1 Ops RFI</th><th class=\"r\">Enterprise/T1 CV</th><th class=\"r\">T2-T4 SME Alerts</th><th class=\"r\">T2-T4 SME Ops RFI</th><th class=\"r\">T2-T4 SME CV</th>";
+  html += "</tr></thead><tbody>";
+  for (var j = ws.length - 1; j >= 0; j--) {
+    var s = ws[j];
+    var entOps = s.entOpsRfis != null ? fmtNum(s.entOpsRfis) : "—";
+    var entCv = s.entCvHits != null ? fmtNum(s.entCvHits) : "—";
+    var smeOps = s.smeOpsRfis != null ? fmtNum(s.smeOpsRfis) : "—";
+    var smeCv = s.smeCvHits != null ? fmtNum(s.smeCvHits) : "—";
+    html += "<tr><td>" + weekEnd(s.week) + "</td><td class=\"r\">" + fmtNum(s.entAlerts) + "</td><td class=\"r\">" + entOps + "</td><td class=\"r\">" + entCv + "</td><td class=\"r\">" + fmtNum(s.smeAlerts) + "</td><td class=\"r\">" + smeOps + "</td><td class=\"r\">" + smeCv + "</td></tr>";
+  }
+  html += "</tbody></table>";
+  html += "</div></div>";
+
+  // RFI table (with ops RFI / CV split)
+  html += '<div class="section"><div class="section-title">Weekly RFI: Ops RFI vs Customer Verification</div>';
+  html += '<div class="table-wrapper"><table><thead><tr>';
+  html += "<th>Week</th><th class=\"r\">Txns</th><th class=\"r\">Ops RFIs</th><th class=\"r\">Ops RFI Rate</th><th class=\"r\">CV Hits</th><th class=\"r\">CV Rate</th><th class=\"r\">Total</th><th class=\"r\">Total Rate</th><th class=\"r\">WoW Δ</th>";
+  html += "</tr></thead><tbody>";
+  for (var k = wr.length - 1; k >= 0; k--) {
+    var r = wr[k], rp = k > 0 ? wr[k - 1] : null;
+    var waTxns = wa[k].txns;
+    var prevWaTxns = rp && k > 0 ? wa[k - 1].txns : null;
+    var rfiRate = waTxns > 0 ? r.rfis / waTxns * 100 : 0;
+    var prevRate = (rp && prevWaTxns) ? rp.rfis / prevWaTxns * 100 : null;
+    var dR = pctDelta(rfiRate, prevRate);
+    var opsRateStr = r.opsRfis != null ? fmtPct(r.opsRfis / waTxns * 100) : "—";
+    var cvRateStr = r.cvHits != null ? fmtPct(r.cvHits / waTxns * 100) : "—";
+    html += "<tr><td>" + weekEnd(r.week) + "</td><td class=\"r\">" + fmtNum(waTxns) + "</td><td class=\"r\">" + (r.opsRfis != null ? fmtNum(r.opsRfis) : "—") + "</td><td class=\"r\">" + opsRateStr + "</td><td class=\"r\">" + (r.cvHits != null ? fmtNum(r.cvHits) : "—") + "</td><td class=\"r\">" + cvRateStr + "</td><td class=\"r\">" + fmtNum(r.rfis) + "</td><td class=\"r\">" + fmtPct(rfiRate) + "</td><td class=\"r " + (dR.cls ? "delta-" + dR.cls : "") + "\">" + dR.text + "</td></tr>";
+  }
+  html += "</tbody></table>";
+  html += "</div></div>";
+
+  // Amount band breakdown
+  var ab = DATA.amountBand;
+  html += '<div class="section"><div class="section-title">Alert &amp; RFI Rates by Amount Band (' + ab.period + ')</div>';
+  html += '<div class="table-wrapper"><table class="band-table"><thead><tr>';
+  html += '<th>Segment</th><th>Band</th><th class="r">Txns</th><th class="r">Alert %</th><th class="r">RFI %</th><th class="r">Alert→RFI %</th><th class="r">RFI→Reject %</th><th class="r">Alert→Action %</th>';
+  html += "</tr></thead><tbody>";
+  ab.segments.forEach(function(seg) {
+    html += '<tr class="seg-header"><td colspan="8">' + seg.name + "</td></tr>";
+    seg.rows.forEach(function(r) {
+      var isAll = r.band === "ALL";
+      var alertCls = r.alertPct >= 10 ? "hot" : r.alertPct >= 5 ? "warm" : "";
+      var rfiCls = r.rfiPct >= 5 ? "hot" : r.rfiPct >= 1 ? "warm" : "";
+      html += "<tr" + (isAll ? ' class="total-row"' : "") + ">";
+      html += "<td></td><td>" + r.band + "</td>";
+      html += '<td class="r">' + fmtNum(r.txns) + "</td>";
+      html += '<td class="r ' + alertCls + '">' + (r.alertPct < 1 ? r.alertPct.toFixed(2) : r.alertPct.toFixed(1)) + "%</td>";
+      html += '<td class="r ' + rfiCls + '">' + (r.rfiPct < 1 ? r.rfiPct.toFixed(2) : r.rfiPct.toFixed(1)) + "%</td>";
+      html += '<td class="r">' + r.alertToRfi.toFixed(1) + "%</td>";
+      html += '<td class="r">' + r.rfiToReject.toFixed(1) + "%</td>";
+      html += '<td class="r">' + r.alertToAction.toFixed(1) + "%</td>";
+      html += "</tr>";
+    });
+  });
+  html += "</tbody></table>";
+  html += '<p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">Alert % = alerts/txns. RFI % = RFIs/txns. Alert→RFI = RFIs/alerts. Alert→Action = (RFI or Reject)/alerts. Red highlight = elevated rates requiring attention.</p>';
+  html += "</div></div>";
+
+  // Fraud table (OKR: reported fraud $ / settled deposits $)
+  html += '<div class="section"><div class="section-title">Weekly Fraud Rate (Reported Fraud / Deposits, by Segment)</div>';
+  html += '<div class="table-wrapper"><table><thead><tr>';
+  html += "<th>Week</th><th class=\"r\">Deposits</th><th class=\"r\">Fraud $</th><th class=\"r\">Fraud Rate</th><th class=\"r\">WoW Δ</th><th class=\"r\">Enterprise/T1</th><th class=\"r\">T2-T4 SME</th>";
+  html += "</tr></thead><tbody>";
+  for (var m = wf.length - 1; m >= 0; m--) {
+    var f = wf[m], fp = m > 0 ? wf[m - 1] : null;
+    var isPrelim = m === wf.length - 1;
+    var dFr = pctDelta(f.fraudRate, fp ? fp.fraudRate : null);
+    html += '<tr style="' + (isPrelim ? "opacity:0.5" : "") + '"><td>' + weekEnd(f.week) + (isPrelim ? " *" : "") + "</td><td class=\"r\">$" + (f.depositUsd / 1e9).toFixed(2) + "B</td><td class=\"r\">$" + (f.fraudAmt / 1e3).toFixed(0) + "K</td><td class=\"r\">" + fmtPct(f.fraudRate) + "</td><td class=\"r " + (dFr.cls ? "delta-" + dFr.cls : "") + "\">" + dFr.text + "</td><td class=\"r\">" + fmtPct(f.entFraudRate) + "</td><td class=\"r\">" + fmtPct(f.smeFraudRate) + "</td></tr>";
+  }
+  html += '</tbody></table><p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">* Latest week is preliminary (pending Ops review). Fraud rate = reported fraud $ (UAR-confirmed) / settled deposit $, by report date. EOY targets: overall &lt;' + DATA.targets.fraudOverall.toFixed(2) + '%, T2-T4 SME &lt;' + DATA.targets.fraudSme.toFixed(2) + '%.</p></div></div>';
+
+  // Fraud rate trend chart (YTD, transaction-date fraud)
+  html += '<div class="charts-grid"><div class="chart-card">';
+  html += '<div class="chart-title">Weekly Fraud Rate Trend (Jan–Sep 2026, UAR-Confirmed / Deposits)</div>';
+  html += '<div id="chart-fraud-rate"></div>';
+  html += '<div class="legend">';
+  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-1)"></div>Overall</div>';
+  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-2)"></div>T2-T4 SME</div>';
+  html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-3)"></div>Enterprise/T1</div>';
+  html += '<div class="legend-item"><div class="legend-swatch dashed" style="border-color:var(--target-line)"></div>Target</div>';
+  html += '</div><p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem">Transaction-date fraud (UAR-confirmed). Weeks after Aug 10 may understate fraud due to UAR review lag. Fraud detail table above uses report-date OKR definition.</p></div></div>';
+
+
+
+  // Takeaways
+  html += '<div class="insight"><div class="insight-title">Key Takeaways</div><ul>';
+  DATA.takeaways.forEach(function(t) { html += "<li>" + t + "</li>"; });
+  html += "</ul></div>";
+
+  // Next initiatives
+  html += '<div class="insight"><div class="insight-title">Next Initiatives</div><ul>';
+  DATA.nextInitiatives.forEach(function(t) { html += "<li>" + t + "</li>"; });
+  html += "</ul></div>";
+
+
+  app.innerHTML = html;
+
+  // Build charts
+  buildLineChart("chart-weekly-alert", {
+    series: [
+      { label: "Overall", values: wa.map(function(w) { return w.overall; }), color: "var(--series-1)" },
+      { label: "T2-T4 SME", values: wa.map(function(w) { return w.sme; }), color: "var(--series-2)" },
+      { label: "Enterprise/T1", values: wa.map(function(w) { return w.enterprise; }), color: "var(--series-3)" }
+    ],
+    xLabels: wa.map(function(w) { return weekEnd(w.week); }),
+    yMax: yMax1, yStep: yStep1,
+    targets: [
+      { value: DATA.targets.overall, label: "Target 0.70%" },
+      { value: DATA.targets.sme, label: "Target 0.80%" }
+    ]
+  });
+
+  // Fraud rate chart (YTD from fraudTrendFull)
+  var ftf = DATA.fraudTrendFull;
+  var fraudRateMax = 0;
+  ftf.forEach(function(f) { fraudRateMax = Math.max(fraudRateMax, f.fraudRate, f.smeFraudRate || 0); });
+  fraudRateMax = Math.max(fraudRateMax, DATA.targets.fraudSme) * 1.3;
+  var frYMax = Math.ceil(fraudRateMax * 100) / 100;
+  var frYStep = frYMax <= 0.15 ? 0.02 : 0.05;
+  var ftfLabels = ftf.map(function(f, i) {
+    var lbl = weekEnd(f.week);
+    if (i === 0) return lbl;
+    var prevMonth = weekEnd(ftf[i - 1].week).split(" ")[0];
+    var thisMonth = lbl.split(" ")[0];
+    return thisMonth !== prevMonth ? lbl : "";
+  });
+  buildLineChart("chart-fraud-rate", {
+    series: [
+      { label: "Overall", values: ftf.map(function(f) { return f.fraudRate; }), color: "var(--series-1)" },
+      { label: "T2-T4 SME", values: ftf.map(function(f) { return f.smeFraudRate; }), color: "var(--series-2)" },
+      { label: "Enterprise/T1", values: ftf.map(function(f) { return f.entFraudRate; }), color: "var(--series-3)" }
+    ],
+    xLabels: ftfLabels,
+    yMax: frYMax, yStep: frYStep,
+    targets: [
+      { value: DATA.targets.fraudOverall, label: "Target " + DATA.targets.fraudOverall.toFixed(2) + "%" },
+      { value: DATA.targets.fraudSme, label: "Target " + DATA.targets.fraudSme.toFixed(2) + "%" }
+    ]
+  });
+
+  // Segment stacked bar charts: Ops RFI + CV
+  var entBarData = ws.filter(function(s) { return s.entOpsRfis != null; }).map(function(s) {
+    return { label: weekEnd(s.week), opsRfi: s.entOpsRfis, cv: s.entCvHits };
+  });
+  var smeBarData = ws.filter(function(s) { return s.smeOpsRfis != null; }).map(function(s) {
+    return { label: weekEnd(s.week), opsRfi: s.smeOpsRfis, cv: s.smeCvHits };
+  });
+  var entMax = 0; entBarData.forEach(function(d) { entMax = Math.max(entMax, (d.opsRfi || 0) + (d.cv || 0)); });
+  var entYMax = Math.ceil(entMax * 1.15 / 100) * 100;
+  var entYStep = entYMax <= 300 ? 50 : entYMax <= 600 ? 100 : 200;
+  var smeMax = 0; smeBarData.forEach(function(d) { smeMax = Math.max(smeMax, (d.opsRfi || 0) + (d.cv || 0)); });
+  var smeYMax = Math.ceil(smeMax * 1.15 / 500) * 500;
+  var smeYStep = smeYMax <= 1500 ? 250 : 500;
+  buildStackedBarChart("chart-ent-rficv", { data: entBarData, yMax: entYMax, yStep: entYStep });
+  buildStackedBarChart("chart-sme-rficv", { data: smeBarData, yMax: smeYMax, yStep: smeYStep });
+
+}
+
+render();
+</script>
