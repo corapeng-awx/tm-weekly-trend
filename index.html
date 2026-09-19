@@ -1043,7 +1043,7 @@ function render() {
   });
   var totalTxns = 0;
   wa.forEach(function(w) { totalTxns += w.txns; });
-  var ruleRows = Object.keys(ruleAgg).map(function(k) { return ruleAgg[k]; });
+  var ruleRows = Object.keys(ruleAgg).map(function(k) { return ruleAgg[k]; }).filter(function(r) { return !r.cv; });
   ruleRows.sort(function(a, b) { return b.alerts - a.alerts; });
 
   var ruleTimeRange = wa.length > 0 ? weekEnd(wa[0].week) + ' – ' + weekEnd(wa[wa.length - 1].week) : '';
