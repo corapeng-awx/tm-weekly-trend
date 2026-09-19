@@ -632,7 +632,7 @@ function pctDelta(curr, prev) {
   var sign = d > 0.0001 ? "+" : d < -0.0001 ? "−" : "";
   var abs = Math.abs(d) < 0.01 ? Math.abs(d).toFixed(4) : Math.abs(d) < 0.1 ? Math.abs(d).toFixed(3) : Math.abs(d).toFixed(2);
   var cls = d > 0.0005 ? "bad" : d < -0.0005 ? "good" : "";
-  return { text: sign + abs + "%", cls: cls };
+  return { text: sign + abs + "% WoW", cls: cls };
 }
 
 function countDelta(curr, prev) {
