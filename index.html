@@ -1055,31 +1055,7 @@ function render() {
     var alertRate = totalTxns > 0 ? (r.alerts / totalTxns * 100).toFixed(3) : "0";
     var rfiRate = r.alerts > 0 ? (r.rfis / r.alerts * 100).toFixed(1) : "0";
     var rejectRate = r.cv ? "N/A" : (r.alerts > 0 ? (r.rejects / r.alerts * 100).toFixed(1) + '%' : "0%");
-    var shortNames = {
-      "Enhanced monitoring - Third party deposit value (from business) higher than expected maximum (new client)": "3P deposit > expected (new, enhanced)",
-      "Enhanced monitoring - Payout value higher than expected maximum (new client)": "Payout > expected (new, enhanced)",
-      "Third party deposit value (from business) higher than expected maximum (new client)": "3P deposit > expected (new)",
-      "Third party deposit value (from business) higher than expected maximum (established client)": "3P deposit > expected (established)",
-      "Deposit - Stake - Payer name on deposit does not match client name": "Payer name mismatch (Stake)",
-      "Beneficiary name on deposit does not match client name": "Beneficiary name mismatch",
-      "Payout value higher than expected maximum (established client)": "Payout > expected (established)",
-      "Payout value higher than expected maximum (new client)": "Payout > expected (new)",
-      "Previous transaction with same counterparty cancelled after RFI raised": "Prev txn cancelled after RFI",
-      "Previous transaction with same counterparty was rejected": "Prev txn same counterparty rejected",
-      "Repeated deposits from same remitter in short period": "Repeated deposits same remitter",
-      "Repeated payouts to same third party individual in short period": "Repeated payouts same 3P",
-      "High value third party deposit from individual/unknown remitter": "High value 3P deposit (individual)",
-      "Reactivation of dormant account - auto KYC": "Dormant account reactivation (auto KYC)",
-      " Third party deposit -  online client without valid URL": "3P deposit, no valid URL",
-      "Client is on the watchlist - REVIEW": "Client on watchlist",
-      "Flag Individual/Unknow Remitter by Percentage Ratio 24H": "Individual remitter ratio 24H",
-      "Round amount deposits from Individuals": "Round amount deposits",
-      "first 5 deposits from individual remitters": "First 5 deposits (individual)",
-      "NewBene Suspicious Login Policy - large amt manual review": "Suspicious login, large amt review",
-      "BeneficiaryName In Black List": "Beneficiary blacklist"
-    };
-    var displayName = shortNames[r.ruleName] || r.ruleName;
-    html += '<tr><td>' + r.ruleId + '</td><td title="' + r.ruleName.replace(/"/g, '&quot;') + '" style="white-space:nowrap">' + displayName + '</td><td class="r">' + fmtNum(r.alerts) + '</td><td class="r">' + fmtNum(r.clients) + '</td><td class="r">' + alertRate + '%</td><td class="r">' + fmtNum(r.rfis) + '</td><td class="r">' + rfiRate + '%</td><td class="r">' + rejectRate + '</td></tr>';
+    html += '<tr><td>' + r.ruleId + '</td><td style="max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + r.ruleName.replace(/"/g, '&quot;') + '">' + r.ruleName + '</td><td class="r">' + fmtNum(r.alerts) + '</td><td class="r">' + fmtNum(r.clients) + '</td><td class="r">' + alertRate + '%</td><td class="r">' + fmtNum(r.rfis) + '</td><td class="r">' + rfiRate + '%</td><td class="r">' + rejectRate + '</td></tr>';
   });
   html += '</tbody></table></div></div>';
 
