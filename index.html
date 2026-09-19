@@ -976,27 +976,19 @@ function render() {
   var smeFrDelta = pctDelta(smeFraudLag, smeFraudPrev);
 
   html += '<p style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:0.5rem;margin-top:0.25rem">Fraud Rate <span style="font-weight:400;text-transform:none">(w/e ' + weekEnd(fraudLagWeek) + ')</span></p>';
-  html += '<div class="kpi-row" style="grid-template-columns: repeat(3, 1fr)">';
-  html += '<div class="kpi"><div class="kpi-label">Overall</div><div class="kpi-value">' + fmtPct(fraudLagRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + frDelta.cls + '">' + frDelta.wow + '</span><span class="kpi-target">EOY &lt;' + DATA.targets.fraudOverall.toFixed(2) + "%</span></div></div>";
-  html += '<div class="kpi"><div class="kpi-label">Enterprise/T1</div><div class="kpi-value">' + fmtPct(entFraudLag) + '</div><div class="kpi-meta"><span class="kpi-delta ' + entFrDelta.cls + '">' + entFrDelta.wow + "</span></div></div>";
-  html += '<div class="kpi"><div class="kpi-label">T2-T4 SME</div><div class="kpi-value">' + fmtPct(smeFraudLag) + '</div><div class="kpi-meta"><span class="kpi-delta ' + smeFrDelta.cls + '">' + smeFrDelta.wow + '</span><span class="kpi-target">EOY &lt;' + DATA.targets.fraudSme.toFixed(2) + "%</span></div></div>";
-  html += "</div>";
-
-  // Fraud reduction vs Q1 + prevention projection (using fraudTrendFull for consistent definition)
+  // Fraud reduction vs Q1 (using fraudTrendFull for consistent UAR definition)
   var ftfAll = DATA.fraudTrendFull;
   var q1Weeks = ftfAll.filter(function(w) { return w.week.match(/^(Jan|Feb|Mar)/); });
   var q1Avg = q1Weeks.length > 0 ? q1Weeks.reduce(function(s, w) { return s + w.fraudRate; }, 0) / q1Weeks.length : 0;
   var junOnward = ftfAll.filter(function(w) { return w.week.match(/^(Jun|Jul|Aug|Sep)/); });
   var recentAvg = junOnward.length > 0 ? junOnward.reduce(function(s, w) { return s + w.fraudRate; }, 0) / junOnward.length : 0;
   var reductionPct = q1Avg > 0 ? ((q1Avg - recentAvg) / q1Avg * 100).toFixed(0) : 0;
-  var avgWeeklyDeposits = wf.length > 0 ? wf.reduce(function(s, w) { return s + w.depositUsd; }, 0) / wf.length : 0;
-  var annualizedPrevention = (q1Avg - recentAvg) / 100 * avgWeeklyDeposits * 52;
-  var preventionM = (Math.abs(annualizedPrevention) / 1e6).toFixed(1);
-  var avgDepB = (avgWeeklyDeposits / 1e9).toFixed(1);
 
-  html += '<div class="kpi-row" style="grid-template-columns: repeat(2, 1fr); margin-top:0.25rem">';
-  html += '<div class="kpi"><div class="kpi-label">Fraud Rate Reduction vs Q1 2026</div><div class="kpi-value" style="color:var(--delta-good)">' + reductionPct + '%</div><div class="kpi-meta"><span style="color:var(--text-muted)">Q1 avg ' + fmtPct(q1Avg) + ' → Jun onward ' + fmtPct(recentAvg) + '</span></div></div>';
-  html += '<div class="kpi"><div class="kpi-label">Annualized Fraud Prevention (est.)</div><div class="kpi-value" style="color:var(--delta-good)">$' + preventionM + 'M</div><div class="kpi-meta"><span style="color:var(--text-muted)">(Q1 ' + fmtPct(q1Avg) + ' − current ' + fmtPct(recentAvg) + ') x $' + avgDepB + 'B/wk x 52</span></div></div>';
+  html += '<div class="kpi-row" style="grid-template-columns: repeat(4, 1fr)">';
+  html += '<div class="kpi"><div class="kpi-label">Overall</div><div class="kpi-value">' + fmtPct(fraudLagRate) + '</div><div class="kpi-meta"><span class="kpi-delta ' + frDelta.cls + '">' + frDelta.wow + '</span><span class="kpi-target">EOY &lt;' + DATA.targets.fraudOverall.toFixed(2) + "%</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">Enterprise/T1</div><div class="kpi-value">' + fmtPct(entFraudLag) + '</div><div class="kpi-meta"><span class="kpi-delta ' + entFrDelta.cls + '">' + entFrDelta.wow + "</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">T2-T4 SME</div><div class="kpi-value">' + fmtPct(smeFraudLag) + '</div><div class="kpi-meta"><span class="kpi-delta ' + smeFrDelta.cls + '">' + smeFrDelta.wow + '</span><span class="kpi-target">EOY &lt;' + DATA.targets.fraudSme.toFixed(2) + "%</span></div></div>";
+  html += '<div class="kpi"><div class="kpi-label">Reduction vs Q1 2026</div><div class="kpi-value" style="color:var(--delta-good)">' + reductionPct + '%</div><div class="kpi-meta"><span style="color:var(--text-muted)">Q1 ' + fmtPct(q1Avg) + ' → Jun+ ' + fmtPct(recentAvg) + '</span></div></div>';
   html += "</div>";
 
   // Chart: weekly alert rate
