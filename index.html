@@ -1070,47 +1070,6 @@ function render() {
   html += '<div class="legend-item"><div class="legend-swatch dashed" style="border-color:var(--target-line)"></div>Target</div>';
   html += '</div><p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem">Transaction-date fraud (UAR-confirmed). Weeks after Aug 10 may understate fraud due to UAR review lag. Fraud detail table below uses report-date OKR definition.</p></div></div>';
 
-  // Segment breakdown: stacked bar charts + detail table
-  html += '<div class="section"><div class="section-title">Segment Detail: Enterprise/T1 vs T2-T4 SME (Ops RFI + Customer Verification)</div>';
-  html += '<p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:1rem">Ops RFI = ops reviewed cases, decided to raise RFI. CV = customer verification post-KYC pass, account activation steps postponed to transaction stage to enable KYC STP (PPTA, URL, UBO verification etc).</p>';
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">';
-  html += '<div class="chart-card"><div class="chart-title">Enterprise/T1</div><div id="chart-ent-rficv"></div></div>';
-  html += '<div class="chart-card"><div class="chart-title">T2-T4 SME</div><div id="chart-sme-rficv"></div></div>';
-  html += '</div>';
-  html += '<div class="legend" style="margin-bottom:1rem"><div class="legend-item"><div class="legend-swatch" style="background:var(--series-1);height:8px"></div>Ops RFI</div><div class="legend-item"><div class="legend-swatch" style="background:var(--series-2);height:8px"></div>Customer Verification</div></div>';
-  html += '<div class="table-wrapper"><table><thead><tr>';
-  html += "<th>Week</th><th class=\"r\">Enterprise/T1 Alerts</th><th class=\"r\">Enterprise/T1 Ops RFI</th><th class=\"r\">Enterprise/T1 CV</th><th class=\"r\">T2-T4 SME Alerts</th><th class=\"r\">T2-T4 SME Ops RFI</th><th class=\"r\">T2-T4 SME CV</th>";
-  html += "</tr></thead><tbody>";
-  for (var j = ws.length - 1; j >= 0; j--) {
-    var s = ws[j];
-    var entOps = s.entOpsRfis != null ? fmtNum(s.entOpsRfis) : "—";
-    var entCv = s.entCvHits != null ? fmtNum(s.entCvHits) : "—";
-    var smeOps = s.smeOpsRfis != null ? fmtNum(s.smeOpsRfis) : "—";
-    var smeCv = s.smeCvHits != null ? fmtNum(s.smeCvHits) : "—";
-    html += "<tr><td>" + weekEnd(s.week) + "</td><td class=\"r\">" + fmtNum(s.entAlerts) + "</td><td class=\"r\">" + entOps + "</td><td class=\"r\">" + entCv + "</td><td class=\"r\">" + fmtNum(s.smeAlerts) + "</td><td class=\"r\">" + smeOps + "</td><td class=\"r\">" + smeCv + "</td></tr>";
-  }
-  html += "</tbody></table>";
-  html += "</div></div>";
-
-  // RFI table (with ops RFI / CV split)
-  html += '<div class="section"><div class="section-title">Weekly RFI: Ops RFI vs Customer Verification</div>';
-  html += '<div class="table-wrapper"><table><thead><tr>';
-  html += "<th>Week</th><th class=\"r\">Txns</th><th class=\"r\">Ops RFIs</th><th class=\"r\">Ops RFI Rate</th><th class=\"r\">CV Hits</th><th class=\"r\">CV Rate</th><th class=\"r\">Total</th><th class=\"r\">Total Rate</th><th class=\"r\">WoW Δ</th>";
-  html += "</tr></thead><tbody>";
-  for (var k = wr.length - 1; k >= 0; k--) {
-    var r = wr[k], rp = k > 0 ? wr[k - 1] : null;
-    var waTxns = wa[k].txns;
-    var prevWaTxns = rp && k > 0 ? wa[k - 1].txns : null;
-    var rfiRate = waTxns > 0 ? r.rfis / waTxns * 100 : 0;
-    var prevRate = (rp && prevWaTxns) ? rp.rfis / prevWaTxns * 100 : null;
-    var dR = pctDelta(rfiRate, prevRate);
-    var opsRateStr = r.opsRfis != null ? fmtPct(r.opsRfis / waTxns * 100) : "—";
-    var cvRateStr = r.cvHits != null ? fmtPct(r.cvHits / waTxns * 100) : "—";
-    html += "<tr><td>" + weekEnd(r.week) + "</td><td class=\"r\">" + fmtNum(waTxns) + "</td><td class=\"r\">" + (r.opsRfis != null ? fmtNum(r.opsRfis) : "—") + "</td><td class=\"r\">" + opsRateStr + "</td><td class=\"r\">" + (r.cvHits != null ? fmtNum(r.cvHits) : "—") + "</td><td class=\"r\">" + cvRateStr + "</td><td class=\"r\">" + fmtNum(r.rfis) + "</td><td class=\"r\">" + fmtPct(rfiRate) + "</td><td class=\"r " + (dR.cls ? "delta-" + dR.cls : "") + "\">" + dR.text + "</td></tr>";
-  }
-  html += "</tbody></table>";
-  html += "</div></div>";
-
   // Amount band breakdown
   var ab = DATA.amountBand;
   html += '<div class="section"><div class="section-title">Alert &amp; RFI Rates by Amount Band (' + ab.period + ')</div>';
@@ -1192,22 +1151,6 @@ function render() {
       { value: DATA.targets.fraudSme, label: "Target " + DATA.targets.fraudSme.toFixed(2) + "%" }
     ]
   });
-
-  // Segment stacked bar charts: Ops RFI + CV
-  var entBarData = ws.filter(function(s) { return s.entOpsRfis != null; }).map(function(s) {
-    return { label: weekEnd(s.week), opsRfi: s.entOpsRfis, cv: s.entCvHits };
-  });
-  var smeBarData = ws.filter(function(s) { return s.smeOpsRfis != null; }).map(function(s) {
-    return { label: weekEnd(s.week), opsRfi: s.smeOpsRfis, cv: s.smeCvHits };
-  });
-  var entMax = 0; entBarData.forEach(function(d) { entMax = Math.max(entMax, (d.opsRfi || 0) + (d.cv || 0)); });
-  var entYMax = Math.ceil(entMax * 1.15 / 100) * 100;
-  var entYStep = entYMax <= 300 ? 50 : entYMax <= 600 ? 100 : 200;
-  var smeMax = 0; smeBarData.forEach(function(d) { smeMax = Math.max(smeMax, (d.opsRfi || 0) + (d.cv || 0)); });
-  var smeYMax = Math.ceil(smeMax * 1.15 / 500) * 500;
-  var smeYStep = smeYMax <= 1500 ? 250 : 500;
-  buildStackedBarChart("chart-ent-rficv", { data: entBarData, yMax: entYMax, yStep: entYStep });
-  buildStackedBarChart("chart-sme-rficv", { data: smeBarData, yMax: smeYMax, yStep: smeYStep });
 
 }
 
