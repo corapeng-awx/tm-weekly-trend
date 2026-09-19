@@ -645,9 +645,26 @@ def extract_preserved(html):
     block = data_match.group(1)
 
     def extract_section(name):
-        pattern = rf'{name}:\s*(\{{[^}}]+\}}|\[.*?\])'
-        m = re.search(pattern, block, re.DOTALL)
-        return m.group(1) if m else None
+        idx = block.find(f'{name}:')
+        if idx == -1:
+            return None
+        # Find the opening { or [
+        start = block.index(name + ':') + len(name) + 1
+        while start < len(block) and block[start] in ' \t\n':
+            start += 1
+        if start >= len(block):
+            return None
+        opener = block[start]
+        closer = '}' if opener == '{' else ']'
+        depth = 0
+        for i in range(start, len(block)):
+            if block[i] == opener:
+                depth += 1
+            elif block[i] == closer:
+                depth -= 1
+                if depth == 0:
+                    return block[start:i + 1]
+        return None
 
     fraud_recall_raw = extract_section("fraudRecall")
     targets_raw = extract_section("targets")

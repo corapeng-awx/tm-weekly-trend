@@ -283,6 +283,14 @@ var DATA = {
     prevAsOf: "2026-09-10",
     regions: [
       { name: "ANZ",      deposits: 624.6, fraud: 1.91, bps: 30.6, prevBps: null },
+      { name: "EMEA",     deposits: 774.0, fraud: 0.51, bps: 6.6,  prevBps: null },
+      { name: "GC",       deposits: 1795.0, fraud: 1.36, bps: 7.6, prevBps: null },
+      { name: "HK & SEA", deposits: 1349.9, fraud: 0.33, bps: 2.5, prevBps: null },
+      { name: "NA",       deposits: 414.1, fraud: 0.33, bps: 8.0,  prevBps: null }
+    ],
+    total: { deposits: 4957.6, fraud: 4.45, bps: 9.0, prevBps: null },
+    prev: { asOf: "2026-09-10", deposits: 4820.0, fraud: 5.12, bps: 10.6 }
+  },
 
   amountBand: {
     period: "Jul\u2013Sep 2026",
@@ -1046,7 +1054,7 @@ function render() {
 
   // Fraud rate trend chart (YTD, transaction-date fraud)
   html += '<div class="charts-grid"><div class="chart-card">';
-  html += '<div class="chart-title">Weekly Fraud Rate Trend (UAR-Confirmed / Deposits)</div>';
+  html += '<div class="chart-title">Weekly Fraud Rate Trend (Jan–Sep 2026, UAR-Confirmed / Deposits)</div>';
   html += '<div id="chart-fraud-rate"></div>';
   html += '<div class="legend">';
   html += '<div class="legend-item"><div class="legend-swatch" style="background:var(--series-1)"></div>Overall</div>';
@@ -1159,7 +1167,7 @@ function render() {
   });
 
   // Fraud rate chart (YTD from fraudTrendFull)
-  var ftf = sliceData(DATA.fraudTrendFull, filterWeeks);
+  var ftf = DATA.fraudTrendFull;
   var fraudRateMax = 0;
   ftf.forEach(function(f) { fraudRateMax = Math.max(fraudRateMax, f.fraudRate, f.smeFraudRate || 0); });
   fraudRateMax = Math.max(fraudRateMax, DATA.targets.fraudSme) * 1.3;
