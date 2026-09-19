@@ -745,7 +745,7 @@ def main():
     # Replace DATA block in HTML
     new_html = re.sub(
         r'var DATA = \{.+?\n\};',
-        new_data,
+        lambda m: new_data,
         html,
         count=1,
         flags=re.DOTALL,
