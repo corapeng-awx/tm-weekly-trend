@@ -1066,9 +1066,9 @@ function render() {
   var ab = DATA.amountBand;
   html += '<div class="section"><div class="section-title">Alert &amp; RFI Rates by Amount Band (' + ab.period + ')</div>';
   html += '<div class="table-wrapper"><table class="band-table"><thead><tr>';
-  html += '<th>Segment</th><th>Band</th><th class="r">Txns</th><th class="r">Alert %</th><th class="r">RFI %</th><th class="r">Alert→RFI %</th><th class="r">RFI→Reject %</th><th class="r">Alert→Action %</th>';
+  html += '<th>Segment</th><th>Band</th><th class="r">Txns</th><th class="r">Adjusted Alert %</th><th class="r">RFI %</th><th class="r">Alert→RFI %</th><th class="r">RFI→Reject %</th><th class="r">Alert→Action %</th>';
   html += "</tr></thead><tbody>";
-  ab.segments.forEach(function(seg) {
+  ab.segments.filter(function(seg) { return seg.name !== "Enterprise"; }).forEach(function(seg) {
     html += '<tr class="seg-header"><td colspan="8">' + seg.name + "</td></tr>";
     seg.rows.forEach(function(r) {
       var isAll = r.band === "ALL";
@@ -1086,7 +1086,7 @@ function render() {
     });
   });
   html += "</tbody></table>";
-  html += '<p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">Alert % = alerts/txns. RFI % = RFIs/txns. Alert→RFI = RFIs/alerts. Alert→Action = (RFI or Reject)/alerts. Red highlight = elevated rates requiring attention.</p>';
+  html += '<p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">Adjusted Alert % = alerts/txns. RFI % = RFIs/txns. Alert→RFI = RFIs/alerts. Alert→Action = (RFI or Reject)/alerts. Red highlight = elevated rates requiring attention.</p>';
   html += "</div></div>";
 
   // Key Takeaways
