@@ -1036,7 +1036,7 @@ function render() {
   ruleRows.sort(function(a, b) { return b.alerts - a.alerts; });
 
   var ruleTimeRange = wa.length > 0 ? weekEnd(wa[0].week) + ' – ' + weekEnd(wa[wa.length - 1].week) : '';
-  html += '<div class="section"><div class="section-title">Top Alert Drivers by Rule (' + ruleTimeRange + ')</div>';
+  html += '<div class="section"><div class="section-title">Top 10 Alert Drivers by Rule (' + ruleTimeRange + ')</div>';
   html += '<div class="table-wrapper" style="max-height:420px;overflow-y:auto"><table><thead><tr style="position:sticky;top:0;background:var(--surface);z-index:1">';
   html += '<th>Rule ID</th><th>Rule Name</th><th class="r">Alerts</th><th class="r">Clients</th><th class="r">Alert Rate</th><th class="r">RFIs</th><th class="r">RFI Rate</th><th class="r">Reject Rate</th>';
   html += '</tr></thead><tbody>';
